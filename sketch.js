@@ -11,6 +11,7 @@ let font;
 
 var person = true;
 var pause = false; //is timer paused
+var timePaused, currentTime;
 
 // VIDEO
 let video;
@@ -33,7 +34,6 @@ function setup() {
   serial.open(portnName);
 
   //TODO: make user select time!
-
   createCanvas(windowWidth, windowHeight, WEBGL);
   startTime = millis(); // start timer.
 
@@ -48,7 +48,7 @@ function setup() {
 
   textFont(font);
   textAlign(CENTER, CENTER);
-  textSize(50);
+  textSize(170);
   fill('rgb(255,0,0)')
   timer();
 
@@ -100,34 +100,32 @@ function gotDetections(error, results) {
 function drawTimer() {
   // Bottom
   push()
-  translate(0, 150)
+  translate(0, 300)
   rotate(radians(180))
   text(countDown, 0, 0)
   pop()
 
   // Top
   push()
-  translate(0, -150)
+  translate(0, -300)
   text(countDown, 0, 0)
   pop()
 
 
   // Left
   push()
-  translate(-150, 0)
+  translate(-300, 0)
   rotate(radians(-90))
   text(countDown, 0, 0)
   pop()
 
   // Right
   push()
-  translate(150, 0)
+  translate(300, 0)
   rotate(radians(90))
   text(countDown, 0, 0)
   pop()
 }
-
-
 
 /**
  * Timer... TODO: add more comments
@@ -153,7 +151,6 @@ function timer() {
   }
 }
 
-
 /**
  * Read a string from the serial port until newline is encountered.
  */
@@ -170,16 +167,21 @@ function serialEvent() {
   }
 }
 
-
 /**
  *  Control the ultrasound sensor.
  */
 function controlUltrasound() {
+  currentTime = new Date(); // get current time.
+
   // if object is within 20 centimeters of the sensor -> pause screen (if not paused).
   // if the screen was already paused -> unpause (toggle boolean).
   if (ultrasound <= 20) {
-    pause = !pause;
-  } 
-  
+    // if time paused = undefined -> first time trying to pause.
+    // otherwise if 2 seconds passed since the pause then you can unpause.
+    if ((timePaused == undefined) || ((currentTime - timePaused) > 2000)) {
+      pause = !pause;
+      timePaused = new Date(); // set the timestamp when the pomodoro session was paused.
+    }
+  }
   console.log("controlUltrasound"+ pause + " ultrasound: "+ ultrasound);
 }
