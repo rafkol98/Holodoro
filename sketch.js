@@ -128,6 +128,7 @@ function drawTimer() {
 }
 
 
+
 /**
  * Timer... TODO: add more comments
  */
@@ -143,6 +144,8 @@ function timer() {
         clearInterval(counter);
         setTimeout(timer, 5000); //start count from 26 again
         return;
+      } else if (count == 0) {
+        serial.write("piezo*");
       }
 
       countDown = count;
@@ -162,7 +165,6 @@ function serialEvent() {
     var sensors = split(inString, ';');
     ultrasound = sensors[0];
     console.log('ultrasound' + ultrasound);
-
     // Check the ultrasound sensor and act appropriately.
     controlUltrasound();
   }
