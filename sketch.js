@@ -172,7 +172,7 @@ function serialEvent() {
  */
 function controlUltrasound() {
   currentTime = new Date(); // get current time.
-
+  
   // if object is within 20 centimeters of the sensor -> pause screen (if not paused).
   // if the screen was already paused -> unpause (toggle boolean).
   if (ultrasound <= 20) {
@@ -183,5 +183,4 @@ function controlUltrasound() {
       timePaused = new Date(); // set the timestamp when the pomodoro session was paused.
     }
   }
-  console.log("controlUltrasound"+ pause + " ultrasound: "+ ultrasound);
 }
