@@ -8,8 +8,10 @@ let inData;
 // TIMER
 let countDown;
 let font;
-var initialSeconds;
-var seconds;
+var initialSeconds, initialSecondsBreak;
+var seconds, secondsBreak;
+
+var startBreak = false;
 
 var person = true;
 var pause = false; //is timer paused
@@ -35,7 +37,7 @@ function preload() {
 }
 
 function setup() {
-
+  // Configuration of firebase.
   const firebaseConfig = {
     apiKey: "AIzaSyDp73X5Dv95oRglSHSbsdeC67iykPH0bx8",
     authDomain: "holodoro-4d629.firebaseapp.com",
@@ -84,7 +86,6 @@ function setup() {
   textSize(170);
   fill('rgb(255,0,0)')
   timer();
-
 }
 
 function draw() {
@@ -92,7 +93,11 @@ function draw() {
   if (loaded) {
     console.log("detections length: " + detections.length)
     // if more than 0 items were detected, then execute appropriately.
-    if (detections.length > 0) {
+
+    if (startBreak) {
+      drawTimer();
+    }
+    else if (detections.length > 0) {
       for (let i = 0; i < detections.length; i++) {
         let object = detections[i];
         // if a person is detected -> show counter.
@@ -105,6 +110,8 @@ function draw() {
             drawTimer();
           }
         }
+
+        
       }
     }
     // otherwise, if no detections were made -> we are sure there is no person
@@ -162,24 +169,33 @@ function drawTimer() {
  * Timer... TODO: add more comments
  */
 function timer() {
-  initialSeconds = 26 // TODO: read it from the user.
+  initialSeconds = 10; // TODO: read it from the user.
+  initialSecondsBreak = 20;
 
   seconds = initialSeconds; 
+  secondsBreak = initialSecondsBreak;
   var counter = setInterval(timer, 1000);
 
   function timer() {
     // if paused is false AND person is in front of the computer -> continue timer.
-    if (!pause && person) {
-      seconds = seconds - 1;
-      if (seconds < 0) {
-        clearInterval(counter);
-        setTimeout(timer, 5000); //start seconds from 26 again
-        return;
+    if (!pause && person && !startBreak) {
+      if (seconds > 0) {
+        seconds = seconds - 1;
       } else if (seconds == 0) {
         serial.write("piezo*");
         updateDB();
+        secondsBreak = initialSecondsBreak;
+        startBreak = true;
       }
       countDown = seconds;
+    } else if (startBreak) {
+      secondsBreak = secondsBreak - 1;
+
+      if (secondsBreak == 0) {
+        startBreak = false;
+        seconds = initialSeconds;
+      }
+      countDown = secondsBreak;
     }
   }
 }

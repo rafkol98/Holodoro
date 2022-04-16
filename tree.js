@@ -129,8 +129,6 @@ function readDB() {
 function initialiseTree() {
 	// initialise tree.
     if (!initialisedFlag && hours!=undefined) {
-		
-
         readInputs(false);
         startGrow();
         initialisedFlag = true;
