@@ -8,6 +8,8 @@ let inData;
 // TIMER
 let countDown;
 let font;
+var initialSeconds;
+var seconds;
 
 var person = true;
 var pause = false; //is timer paused
@@ -26,6 +28,7 @@ var ultrasound;
 // Firebase.
 var userLoggedIn = false;
 var userID;
+var sessions, secondsFocused;
 
 function preload() {
   font = loadFont('fonts/exo.ttf');
@@ -33,17 +36,17 @@ function preload() {
 
 function setup() {
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDp73X5Dv95oRglSHSbsdeC67iykPH0bx8",
-  authDomain: "holodoro-4d629.firebaseapp.com",
-  databaseURL: "https://holodoro-4d629-default-rtdb.firebaseio.com",
-  projectId: "holodoro-4d629",
-  storageBucket: "holodoro-4d629.appspot.com",
-  messagingSenderId: "644743674668",
-  appId: "1:644743674668:web:399d42bfa528290a6dca89",
-  measurementId: "G-FW5WR4HL00"
-};
- 
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp73X5Dv95oRglSHSbsdeC67iykPH0bx8",
+    authDomain: "holodoro-4d629.firebaseapp.com",
+    databaseURL: "https://holodoro-4d629-default-rtdb.firebaseio.com",
+    projectId: "holodoro-4d629",
+    storageBucket: "holodoro-4d629.appspot.com",
+    messagingSenderId: "644743674668",
+    appId: "1:644743674668:web:399d42bfa528290a6dca89",
+    measurementId: "G-FW5WR4HL00"
+  };
+
   // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   database = firebase.database();
@@ -53,8 +56,10 @@ const firebaseConfig = {
       // User logged in already or has just logged in.
       console.log(user.uid);
       userID = user.uid;
-      
-    } 
+    
+      // Read DB.
+      readDB();
+    }
   });
 
   // serial communication.
@@ -64,7 +69,6 @@ const firebaseConfig = {
 
   //TODO: make user select time!
   createCanvas(windowWidth, windowHeight, WEBGL);
-  startTime = millis(); // start timer.
 
   video = createCapture(VIDEO);
   video.size(windowWidth, windowHeight);
@@ -100,7 +104,6 @@ function draw() {
             // draw timer
             drawTimer();
           }
-       
         }
       }
     }
@@ -140,7 +143,6 @@ function drawTimer() {
   text(countDown, 0, 0)
   pop()
 
-
   // Left
   push()
   translate(-300, 0)
@@ -160,23 +162,24 @@ function drawTimer() {
  * Timer... TODO: add more comments
  */
 function timer() {
-  var count = 26;
+  initialSeconds = 26 // TODO: read it from the user.
+
+  seconds = initialSeconds; 
   var counter = setInterval(timer, 1000);
 
   function timer() {
     // if paused is false AND person is in front of the computer -> continue timer.
     if (!pause && person) {
-      count = count - 1;
-      if (count < 0) {
+      seconds = seconds - 1;
+      if (seconds < 0) {
         clearInterval(counter);
-        setTimeout(timer, 5000); //start count from 26 again
+        setTimeout(timer, 5000); //start seconds from 26 again
         return;
-      } else if (count == 0) {
+      } else if (seconds == 0) {
         serial.write("piezo*");
         updateDB();
       }
-
-      countDown = count;
+      countDown = seconds;
     }
   }
 }
@@ -195,6 +198,8 @@ function serialEvent() {
     // Check the ultrasound sensor and act appropriately.
     controlUltrasound();
   }
+
+ 
 }
 
 /**
@@ -202,7 +207,7 @@ function serialEvent() {
  */
 function controlUltrasound() {
   currentTime = new Date(); // get current time.
-  
+
   // if object is within 20 centimeters of the sensor -> pause screen (if not paused).
   // if the screen was already paused -> unpause (toggle boolean).
   if (ultrasound <= 20) {
@@ -215,13 +220,53 @@ function controlUltrasound() {
   }
 }
 
+/**
+ * Update datbase after a session finished.
+ */
 function updateDB() {
+  
   if (userLoggedIn) {
-    var data = {
-      hours: 222
-      }
+    // Increment seconds focused by the current session seconds.
+    secondsFocused += initialSeconds;
+    sessions++
 
-      var ref = database.ref('users').child(userID);
-      ref.set(data);
+    console.log("seconds focused: "+secondsFocused);
+    var data = {
+      secondsFocused: secondsFocused,
+      sessions: sessions
+    }
+    var ref = database.ref('users').child(userID);
+    ref.set(data);
+  }
+}
+
+function readDB() {
+  if (userLoggedIn) {
+    var ref = database.ref('users').child(userID);
+    
+    // get secondsFocused of user.
+    ref.child('secondsFocused').on('value', (snapshot) => {
+      secondsFocused = snapshot.val();
+    });
+
+    // get sessions completed of user.
+    ref.child('sessions').on('value', (snapshot) => {
+      sessions = snapshot.val();
+    });
+
+    handleNulls(); // handle null values in the variables - when the user uses the app for the first time.
+  }
+}
+
+/**
+ * Handle null value reads in the database.
+ */
+function handleNulls() {
+  if (sessions == null) {
+    sessions = 0;
+  }
+
+  if (secondsFocused == null) {
+    secondsFocused = 0;
   }
 }

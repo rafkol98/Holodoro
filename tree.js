@@ -11,7 +11,7 @@ var hide = false,
 	prog = 1,
 	growing = false,
 	mutating = false,
-	randSeed = 80,
+	randSeed = 80
 	paramSeed = Math.floor(Math.random()*1000),
 	randBias = 0;
 
@@ -20,7 +20,7 @@ var hide = false,
 var userLoggedIn = false;
 var initialisedFlag = false;
 var userID;
-var hours;
+var hours, sessions;
 
 
 function setup()
@@ -46,29 +46,33 @@ function setup()
             // User logged in already or has just logged in.
             console.log(user.uid);
             userID = user.uid;
-
-       
             readDB();
-       
-        
         }
     });
-    canvas = createCanvas(700, 700);
+    canvas = createCanvas(windowWidth, windowHeight);
     canvas.class("sketchStyle")
-
-   
-    canvas.parent('tree')
-    
+	canvas.parent('tree')
 }
 
 function readInputs(updateTree)
-{
-	maxLevel = 10; // TODO: variable
+{	
+	// variables altered by users usage of the system.
+
+	// Every two hours focused -> another level is created in the tree.
+	// There can be maximum 10 levels. Starting value 3.
+	maxLevel = Math.min((3 + hours/2), 10);
+	console.log("maxLevel"+maxLevel);
+
+	// For every session the size of the tree increases. 
+	// Maximum size - 250. Starting value 20.
+	size = Math.min((20 + sessions), 250);
+
+
 	rot =  (PI/2) / 7; // TODO: seed of user - generated when creating account
 	lenRand = 0.2;
-	branchProb = 0.9;
+	branchProb = 1;
 	rotRand = 0.1;
-	leafProb = 0.5; // TODO: change when multiple hours
+	leafProb = 0; // TODO: change when multiple hours
 	
 	if ( updateTree && !growing )
 	{
@@ -84,15 +88,16 @@ function windowResized()
 
 function draw()
 {
-    initialiseFlock();
+	background(255, 255, 255);
+	// if initialised flag - thenshow tree.
     if (initialisedFlag) {
-
-    
-
+		noStroke();
+		textSize(40);
+		fill('rgb(0,0,0)')
+		text("Hey Rafael!", 100, 100);
+		text("Hours Focused - " + hours, width - 500, 100);
+		
         stroke(114,92,66);
-	
-        background(255, 255, 255);
-    
         
         translate(width / 2, height);
         scale(1, -1);
@@ -100,34 +105,44 @@ function draw()
         translate(0, 20);
         
         branch(1, randSeed);
-        fill(0,0,0)
+		fill(0,0,0)
     }
-
-
 }
 
 function readDB() {
     if (userLoggedIn) {
-        var ref = database.ref('users').child(userID).child('hours');
-        ref.on('value', (snapshot) => {
-            const data = snapshot.val();
-            hours = data;
+		var ref = database.ref('users').child(userID);
+		
+		// get the number of sessions completed.
+        ref.child('sessions').on('value', (snapshot) => {
+            sessions = snapshot.val();
+		});
 
-            console.log("hours" + hours);
-        });
+		// get the total number of seconds focused.
+        ref.child('secondsFocused').on('value', (snapshot) => {
+			hours = converrtSecondsToHours(snapshot.val());
+			initialiseTree();
+		});
     }
 }
 
-function initialiseFlock() {
+function initialiseTree() {
+	// initialise tree.
     if (!initialisedFlag && hours!=undefined) {
-        size = hours;
+		
+
         readInputs(false);
         startGrow();
         initialisedFlag = true;
-        console.log("meow");
-    }
+	} 
+	// update tree if database was updated.
+	else if (initialisedFlag) {
+		maxLevel = Math.min((3 + hours/2), 10);
+		size = 20 + sessions;
+        readInputs(false);
+        startGrow();
+	}
 }
-
 
 function branch(level, seed)
 {
