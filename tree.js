@@ -72,7 +72,7 @@ function readInputs(updateTree)
 	lenRand = 0.2;
 	branchProb = 1;
 	rotRand = 0.1;
-	leafProb = 0; // TODO: change when multiple hours
+	leafProb = 0.8; // TODO: change when multiple hours
 	
 	if ( updateTree && !growing )
 	{

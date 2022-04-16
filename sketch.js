@@ -84,7 +84,6 @@ function setup() {
   textFont(font);
   textAlign(CENTER, CENTER);
   textSize(170);
-  fill('rgb(255,0,0)')
   timer();
 }
 
@@ -137,31 +136,40 @@ function gotDetections(error, results) {
 }
 
 function drawTimer() {
+  // colours change depending if working or break.
+  if (startBreak) {
+    fill('rgb(40,255,0)')
+  } else{
+    fill('rgb(0,181,226)')
+  }
+  
+  var timerString = secondsToMinutes(countDown);
+
   // Bottom
   push()
   translate(0, 300)
   rotate(radians(180))
-  text(countDown, 0, 0)
+  text(timerString, 0, 0)
   pop()
 
   // Top
   push()
   translate(0, -300)
-  text(countDown, 0, 0)
+  text(timerString, 0, 0)
   pop()
 
   // Left
   push()
   translate(-300, 0)
   rotate(radians(-90))
-  text(countDown, 0, 0)
+  text(timerString, 0, 0)
   pop()
 
   // Right
   push()
   translate(300, 0)
   rotate(radians(90))
-  text(countDown, 0, 0)
+  text(timerString, 0, 0)
   pop()
 }
 
@@ -170,7 +178,7 @@ function drawTimer() {
  */
 function timer() {
   initialSeconds = 10; // TODO: read it from the user.
-  initialSecondsBreak = 20;
+  initialSecondsBreak = 10;
 
   seconds = initialSeconds; 
   secondsBreak = initialSecondsBreak;
@@ -214,8 +222,6 @@ function serialEvent() {
     // Check the ultrasound sensor and act appropriately.
     controlUltrasound();
   }
-
- 
 }
 
 /**
@@ -285,4 +291,13 @@ function handleNulls() {
   if (secondsFocused == null) {
     secondsFocused = 0;
   }
+}
+
+
+function secondsToMinutes(time){
+  return  str_pad_left(Math.floor(time / 60),'0',2) + ':' + str_pad_left(time % 60,'0',2);
+}
+
+function str_pad_left(string,pad,length) {
+  return (new Array(length+1).join(pad)+string).slice(-length);
 }
