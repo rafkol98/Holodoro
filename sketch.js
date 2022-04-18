@@ -28,9 +28,10 @@ var loaded = false;
 var ultrasound;
 
 // Firebase.
+var ref;
 var userLoggedIn = false;
 var userID;
-var sessions, secondsFocused;
+var sessions, secondsFocused, lastVisit, streak;
 
 function preload() {
   font = loadFont('fonts/exo.ttf');
@@ -178,7 +179,7 @@ function drawTimer() {
  */
 function timer() {
   initialSeconds = 10; // TODO: read it from the user.
-  initialSecondsBreak = 10;
+  initialSecondsBreak = 30;
 
   seconds = initialSeconds; 
   secondsBreak = initialSecondsBreak;
@@ -200,6 +201,7 @@ function timer() {
       secondsBreak = secondsBreak - 1;
 
       if (secondsBreak == 0) {
+        serial.write("break*");
         startBreak = false;
         seconds = initialSeconds;
       }
@@ -252,36 +254,51 @@ function updateDB() {
     secondsFocused += initialSeconds;
     sessions++
 
-    console.log("seconds focused: "+secondsFocused);
+    console.log("seconds focused: "+secondsFocused + "sessions: "+sessions);
     var data = {
       secondsFocused: secondsFocused,
-      sessions: sessions
+      sessions: sessions,
+      streak: streak,
+      lastVisit: lastVisit
     }
-    var ref = database.ref('users').child(userID);
     ref.set(data);
   }
 }
 
 function readDB() {
   if (userLoggedIn) {
-    var ref = database.ref('users').child(userID);
-    
+    ref = database.ref('users').child(userID)
     // get secondsFocused of user.
     ref.child('secondsFocused').on('value', (snapshot) => {
       secondsFocused = snapshot.val();
     });
 
+    //TODO: fix the streak!
+    // get secondsFocused of user.
+    ref.child('lastVisit').on('value', (snapshot) => {
+      // if its the first time using the app then set the last visit as now.
+        lastVisit = snapshot.val();
+    });
+
+    // get secondsFocused of user.
+    ref.child('streak').on('value', (snapshot) => {
+      // if its the first time using the app then set the streak as 1 - as they are using the app now.
+        streak = snapshot.val();
+    });
+
+
     // get sessions completed of user.
     ref.child('sessions').on('value', (snapshot) => {
       sessions = snapshot.val();
     });
-
+     
     handleNulls(); // handle null values in the variables - when the user uses the app for the first time.
+    handleStreak(); 
   }
 }
 
 /**
- * Handle null value reads in the database.
+ * Handle null value reads in the database - this only happens when its the first time the user logs in.
  */
 function handleNulls() {
   if (sessions == null) {
@@ -291,13 +308,52 @@ function handleNulls() {
   if (secondsFocused == null) {
     secondsFocused = 0;
   }
+
+  if (lastVisit == null) {
+    secondsFocused = new Date();
+  }
+
+  if (streak == null) {
+    streak = 0;
+  }
+
 }
 
-
+/**
+ * Convert seconds to minutes.
+ */
 function secondsToMinutes(time){
   return  str_pad_left(Math.floor(time / 60),'0',2) + ':' + str_pad_left(time % 60,'0',2);
 }
 
+/**
+ * Pad the timer string.
+ */
 function str_pad_left(string,pad,length) {
   return (new Array(length+1).join(pad)+string).slice(-length);
+}
+
+
+function handleStreak() {
+  currentTime = new Date();
+  const msBetweenDates = Math.abs(lastVisit - currentTime);
+
+  var lastVisitDate = new Date(lastVisit * 1000);
+  //TODO: not on the same day but have 24 hours distance between them.
+  console.log("same day? "+ sameDay(currentTime, lastVisitDate));
+  // Convert ms to hours.
+  const hoursBetweenDates = msBetweenDates / (60 * 60 * 1000);
+
+  if (hoursBetweenDates < 24) {
+    streak++;
+    ref.child('streak').set(streak);
+  } else {
+    ref.child('streak').set(0);
+  }
+}
+
+function sameDay(d1, d2) {
+  return d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate();
 }

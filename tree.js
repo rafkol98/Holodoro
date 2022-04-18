@@ -74,7 +74,7 @@ function readInputs(updateTree)
 	rotRand = 0.1;
 	leafProb = 0.8; // TODO: change when multiple hours
 	
-	if ( updateTree && !growing )
+	if (updateTree && !growing)
 	{
 		prog = maxLevel + 1;
 		loop();
@@ -128,7 +128,7 @@ function readDB() {
 
 function initialiseTree() {
 	// initialise tree.
-    if (!initialisedFlag && hours!=undefined) {
+    if (!initialisedFlag && hours != undefined) {
         readInputs(false);
         startGrow();
         initialisedFlag = true;
@@ -138,7 +138,7 @@ function initialiseTree() {
 		maxLevel = Math.min((3 + hours/2), 10);
 		size = 20 + sessions;
         readInputs(false);
-        startGrow();
+        showTreeAlreadyGrown(); // do not reshow the animation where the tree grows.
 	}
 }
 
@@ -154,9 +154,9 @@ function branch(level, seed)
 		
 	var growthLevel = (prog - level > 1) || (prog >= maxLevel + 1) ? 1 : (prog - level);
 	
-	strokeWeight(12 * Math.pow((maxLevel - level + 1) / maxLevel, 2));
+	strokeWeight(12 * Math.pow((maxLevel - level + 1) / maxLevel, 2)); // stroke of the tree base.
 
-	var len = growthLevel * size* (1 + rand2() * lenRand);
+	var len = growthLevel * size * (1 + rand2() * lenRand); // length of the tree.
 	
 	line(0, 0, 0, len / level);
 	translate(0, len / level);
@@ -188,6 +188,7 @@ function branch(level, seed)
 		}
 	}
 	
+	// Flowers
 	if ( (level >= maxLevel || (!doBranch1 && !doBranch2)) && doLeaves )
 	{
 		var p = Math.min(1, Math.max(0, prog - level));
@@ -245,4 +246,13 @@ function rand2()
 function rrand()
 {
 	return rand2() + randBias;
+}
+
+/**
+ * 
+ */
+function showTreeAlreadyGrown() {
+	loop();
+	growing = false;
+	// return;
 }

@@ -49,21 +49,23 @@ void calculateDistance() {
   Serial.println(";");  
 }
 
-void playPiezoSound() {
-//  for (int i=0; i<4; i++) {
-//    for (int x=0; x<180; x++) {
-//      // convert degrees to radians then obtain sin value
-//      sinVal = (sin(x*(3.1412/180)));
-//      // generate a frequency from the sin value
-//      toneVal = 2000+(int(sinVal*1000));
-//      tone(8, toneVal);
-//      delay(2);
-//    }
-//  }
-  tone(piezoPin, 300, 2000);
-  delay(100);
-  digitalWrite(piezoPin,LOW);
-  delay(100);  
+void playPiezoSound(boolean isBreakOver) {
+  if (isBreakOver) {
+    tone(piezoPin, 800, 1000);
+    delay(100);
+    digitalWrite(piezoPin,LOW);
+    delay(100);  
+    tone(piezoPin, 1500, 1000);
+    delay(100);
+    digitalWrite(piezoPin,LOW);
+    delay(100);  
+  } else {
+    tone(piezoPin, 300, 2000);
+    delay(100);
+    digitalWrite(piezoPin,LOW);
+    delay(100);  
+  }
+  
 }
 
 
@@ -76,9 +78,13 @@ void checkSerial() {
     
     // light up the primary colour led.
     if (getStart == "piezo") {
-      playPiezoSound();
+      playPiezoSound(false);
     } 
 
+    if (getStart == "break") {
+      playPiezoSound(true);
+    } 
+    
      while(Serial.available() > 0) {
         Serial.read();
       }
