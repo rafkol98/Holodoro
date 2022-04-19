@@ -255,6 +255,7 @@ function updateDB() {
     sessions++
 
     console.log("seconds focused: "+secondsFocused + "sessions: "+sessions);
+    
     var data = {
       secondsFocused: secondsFocused,
       sessions: sessions,
