@@ -1,3 +1,19 @@
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
+
+// Radio pins.
+#define CE_PIN   7
+#define CSN_PIN 8
+
+const byte slaveAddress[5] = {'R','x','A','A','A'};
+
+RF24 radio(CE_PIN, CSN_PIN); // Create a Radio
+
+char dataToSend[10] = "Me";
+char txNum = '0';
+
+
 // ULTRASONIC
 int echoPin = 2;
 const int trigPin = 3;
@@ -5,26 +21,57 @@ long duration; // variable for the duration of sound wave travel
 int distance; // variable for the distance measurement
 
 // PIEZO BUZZER
-int piezoPin = 8;
+int piezoPin = 4;
 float sinVal;
 int toneVal;
 
 void setup() {
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an OUTPUT
   pinMode(echoPin, INPUT); // Sets the echoPin as an INPUT
-  
+ 
   pinMode(piezoPin, OUTPUT); // Set up the piezo as an OUTPUT.
-
+  
   Serial.begin(9600); // // Serial Communication is starting with 9600 of baudrate speed
+
+  radio.begin();
+  radio.setDataRate( RF24_250KBPS );
+  radio.setRetries(3,5); // delay, count
+  radio.openWritingPipe(slaveAddress);
   
 }
 
 void loop() {
   checkSerial();
   calculateDistance();
- 
+  sendRadioData();
   delay(200);
 }
+
+void sendRadioData() {
+   bool rslt;
+    rslt = radio.write( &dataToSend, sizeof(dataToSend) );
+        // Always use sizeof() as it gives the size as the number of bytes.
+        // For example if dataToSend was an int sizeof() would correctly return 2
+
+    Serial.print("Data Sent ");
+    Serial.print(dataToSend);
+    if (rslt) {
+        Serial.println("  Acknowledge received");
+        updateMessage();
+    }
+    else {
+        Serial.println("  Tx failed");
+    }
+}
+void updateMessage() {
+        // so you can see that new data is being sent
+    txNum += 1;
+    if (txNum > '9') {
+        txNum = '0';
+    }
+    dataToSend[8] = txNum;
+}
+
 
 
 /**
@@ -65,7 +112,6 @@ void playPiezoSound(boolean isBreakOver) {
     digitalWrite(piezoPin,LOW);
     delay(100);  
   }
-  
 }
 
 
@@ -76,7 +122,7 @@ void checkSerial() {
   if(Serial.available() > 0) {
     String getStart = Serial.readStringUntil('*');
     
-    // light up the primary colour led.
+    // play piezo sound, if "piezo" was received.
     if (getStart == "piezo") {
       playPiezoSound(false);
     } 
