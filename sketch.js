@@ -44,36 +44,7 @@ function preload() {
 }
 
 function setup() {
-  // Configuration of firebase.
-  const firebaseConfig = {
-    apiKey: "AIzaSyDp73X5Dv95oRglSHSbsdeC67iykPH0bx8",
-    authDomain: "holodoro-4d629.firebaseapp.com",
-    databaseURL: "https://holodoro-4d629-default-rtdb.firebaseio.com",
-    projectId: "holodoro-4d629",
-    storageBucket: "holodoro-4d629.appspot.com",
-    messagingSenderId: "644743674668",
-    appId: "1:644743674668:web:399d42bfa528290a6dca89",
-    measurementId: "G-FW5WR4HL00"
-  };
-
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  database = firebase.database();
-  firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-      userLoggedIn = true;
-      // User logged in already or has just logged in.
-      console.log(user.uid);
-      userID = user.uid;
-    
-      // Read DB.
-      readDB();
-    }
-  });
-
-  //myRec.onResult = parseResult; // now in the constructor
-  myRec.start(); // start engine
-  
+  setupFirebase();
 
   // serial communication.
   serial = new p5.SerialPort('192.168.0.4')
@@ -100,7 +71,8 @@ function setup() {
 
 function draw() {
   background(0)
-  if (loaded) {
+  var startClock = localStorage.getItem("startClock");
+  if (loaded && startClock) {
     console.log("detections length: " + detections.length)
     // if more than 0 items were detected, then execute appropriately.
 
@@ -192,8 +164,10 @@ function drawTimer() {
  * Timer... TODO: add more comments
  */
 function timer() {
-  initialSeconds = 10; // TODO: read it from the user.
-  initialSecondsBreak = 30;
+
+  //TODO: number sessions repeat.
+  initialSeconds = localStorage.getItem("minutesSession") * 60; 
+  initialSecondsBreak = localStorage.getItem("minutesBreak") * 60;
 
   seconds = initialSeconds; 
   secondsBreak = initialSecondsBreak;
@@ -374,15 +348,32 @@ function sameDay(d1, d2) {
 }
 
 
-function parseResult()
+function setupFirebase()
 {
-  // recognition system will often append words into phrases.
-  // so hack here is to only use the last word:
-  var mostrecentword = myRec.resultString.split(' ').pop();
-  if(mostrecentword.indexOf("left")!==-1) { console.log('l'); }
-  else if(mostrecentword.indexOf("right")!==-1) { console.log('r'); }
-  else if(mostrecentword.indexOf("up")!==-1) { console.log('u'); }
-  else if(mostrecentword.indexOf("down")!==-1) { console.log('d'); }
-  else if(mostrecentword.indexOf("clear")!==-1) { console.log('c'); }
-  console.log(mostrecentword);
+  // Configuration of firebase.
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp73X5Dv95oRglSHSbsdeC67iykPH0bx8",
+    authDomain: "holodoro-4d629.firebaseapp.com",
+    databaseURL: "https://holodoro-4d629-default-rtdb.firebaseio.com",
+    projectId: "holodoro-4d629",
+    storageBucket: "holodoro-4d629.appspot.com",
+    messagingSenderId: "644743674668",
+    appId: "1:644743674668:web:399d42bfa528290a6dca89",
+    measurementId: "G-FW5WR4HL00"
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  database = firebase.database();
+  firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+      userLoggedIn = true;
+      // User logged in already or has just logged in.
+      console.log(user.uid);
+      userID = user.uid;
+    
+      // Read DB.
+      readDB();
+    }
+  });
 }
