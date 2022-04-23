@@ -1,0 +1,67 @@
+<html>
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.4.1/lib/p5.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.4.5/addons/p5.dom.js"></script> -->
+    <script src="./lib/p5.speech.js"></script>
+    <script>
+
+        var myRec = new p5.SpeechRec('en-US', parseResult); // new P5.SpeechRec object
+        myRec.continuous = true; // do continuous recognition
+        myRec.interimResults = true; // allow partial recognition (faster, less accurate)
+
+        var minutesSession = "";
+        var minutesBreak = ""
+        var numberSessions = "";
+
+        function setup() {
+            // graphics stuff:
+            createCanvas(windowWidth, windowHeight);
+
+            //myRec.onResult = parseResult; // now in the constructor
+            myRec.start(); // start engine
+        }
+
+        function draw() {
+
+            background(255, 255, 255);
+            fill(0, 0, 0, 255);
+
+            // instructions
+            textSize(20);
+            textAlign(LEFT);
+            // TODO: do it in html.
+            text("Set up minutes of a session by saying 'minutes' and then followed by the number of minutes you wish the session to last.", 20, 50);
+
+
+            textSize(20);
+            textAlign(CENTER);
+
+            text("Minutes SESSION: " + minutesSession, windowWidth / 2, 100);
+            text("Minutes BREAK: " + minutesBreak, windowWidth / 2, 150);
+            text("Number of sessions: " + numberSessions, windowWidth / 2, 200);
+        }
+
+        function parseResult() {
+            // recognition system will often append words into phrases.
+            // so hack here is to only use the last word:
+            var mostrecentword = myRec.resultString.split(' ').pop();
+            if (mostrecentword.indexOf("session") !== -1) {
+                minutesSession = myRec.resultString.match(/\d+/)[0];
+            } else if (mostrecentword.indexOf("break") !== -1) {
+                minutesBreak = myRec.resultString.match(/\d+/)[0];
+            } else if (mostrecentword.indexOf("times") !== -1) {
+                numberSessions = myRec.resultString.match(/\d+/)[0];
+            } else if (mostrecentword.indexOf("start") !== -1 || mostrecentword.indexOf("ready") !== -1) {
+                console.log("starting!!!")
+            }
+
+        }
+
+    </script>
+</head>
+
+<body>
+</body>
+
+</html>

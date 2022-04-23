@@ -22,6 +22,7 @@ let video;
 let detector;
 let detections = [];
 
+// var loaded = false;
 var loaded = false;
 
 // Serial controls.
@@ -32,6 +33,11 @@ var ref;
 var userLoggedIn = false;
 var userID;
 var sessions, secondsFocused, lastVisit, streak;
+
+var myRec = new p5.SpeechRec('en-US', parseResult); // new P5.SpeechRec object
+myRec.continuous = true; // do continuous recognition
+myRec.interimResults = true; // allow partial recognition (faster, less accurate)
+
 
 function preload() {
   font = loadFont('fonts/exo.ttf');
@@ -64,6 +70,10 @@ function setup() {
       readDB();
     }
   });
+
+  //myRec.onResult = parseResult; // now in the constructor
+  myRec.start(); // start engine
+  
 
   // serial communication.
   serial = new p5.SerialPort('192.168.0.4')
@@ -150,12 +160,14 @@ function drawTimer() {
   push()
   translate(0, 300)
   rotate(radians(180))
+  scale(-1,1);
   text(timerString, 0, 0)
   pop()
 
   // Top
   push()
   translate(0, -300)
+  scale(-1,1);
   text(timerString, 0, 0)
   pop()
 
@@ -163,6 +175,7 @@ function drawTimer() {
   push()
   translate(-300, 0)
   rotate(radians(-90))
+  scale(-1,1);
   text(timerString, 0, 0)
   pop()
 
@@ -170,6 +183,7 @@ function drawTimer() {
   push()
   translate(300, 0)
   rotate(radians(90))
+  scale(-1,1);
   text(timerString, 0, 0)
   pop()
 }
@@ -357,4 +371,18 @@ function sameDay(d1, d2) {
   return d1.getFullYear() === d2.getFullYear() &&
     d1.getMonth() === d2.getMonth() &&
     d1.getDate() === d2.getDate();
+}
+
+
+function parseResult()
+{
+  // recognition system will often append words into phrases.
+  // so hack here is to only use the last word:
+  var mostrecentword = myRec.resultString.split(' ').pop();
+  if(mostrecentword.indexOf("left")!==-1) { console.log('l'); }
+  else if(mostrecentword.indexOf("right")!==-1) { console.log('r'); }
+  else if(mostrecentword.indexOf("up")!==-1) { console.log('u'); }
+  else if(mostrecentword.indexOf("down")!==-1) { console.log('d'); }
+  else if(mostrecentword.indexOf("clear")!==-1) { console.log('c'); }
+  console.log(mostrecentword);
 }
