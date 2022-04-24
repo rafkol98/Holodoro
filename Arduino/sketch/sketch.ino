@@ -120,16 +120,16 @@ void checkSerial() {
     // play piezo sound, if "piezo" was received.
     if (getStart == "piezo") {
       playPiezoSound(false);
+      sendRadioData(false);
     } 
 
-    // play piezo sound, if "piezo" was received.
     if (getStart == "session") {
       sendRadioData(true);
-    }
-
-    if (getStart == "break") {
+    } 
+    
+    if (getStart == "breakFinished") {
       playPiezoSound(true);
-      sendRadioData(false);
+      sendRadioData(true);
     } 
     
      while(Serial.available() > 0) {

@@ -34,11 +34,6 @@ var userLoggedIn = false;
 var userID;
 var sessions, secondsFocused, lastVisit, streak;
 
-var myRec = new p5.SpeechRec('en-US', parseResult); // new P5.SpeechRec object
-myRec.continuous = true; // do continuous recognition
-myRec.interimResults = true; // allow partial recognition (faster, less accurate)
-
-
 function preload() {
   font = loadFont('fonts/exo.ttf');
 }
@@ -62,6 +57,10 @@ function setup() {
     // Load ML model.
     detector = ml5.objectDetector('cocossd', modelReady);
   }, false);
+
+  // Write to serial that the session started - turn on the red LEDS.
+  // (do not disturb).
+  serial.write("session*");
 
   textFont(font);
   textAlign(CENTER, CENTER);
@@ -92,8 +91,6 @@ function draw() {
             drawTimer();
           }
         }
-
-        
       }
     }
     // otherwise, if no detections were made -> we are sure there is no person
@@ -173,23 +170,29 @@ function timer() {
   secondsBreak = initialSecondsBreak;
   var counter = setInterval(timer, 1000);
 
+ 
+
   function timer() {
     // if paused is false AND person is in front of the computer -> continue timer.
     if (!pause && person && !startBreak) {
+  
       if (seconds > 0) {
         seconds = seconds - 1;
       } else if (seconds == 0) {
+        // Write to serial that the session ended - play sound and turn on the green LEDS on slave.
         serial.write("piezo*");
         updateDB();
         secondsBreak = initialSecondsBreak;
         startBreak = true;
+        serial.write("break*");
       }
       countDown = seconds;
     } else if (startBreak) {
       secondsBreak = secondsBreak - 1;
 
       if (secondsBreak == 0) {
-        serial.write("break*");
+        // Write to serial that the break finished - play break sound and turn on the red LEDS on slave.
+        serial.write("breakFinished*");
         startBreak = false;
         seconds = initialSeconds;
       }
