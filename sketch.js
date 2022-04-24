@@ -8,8 +8,10 @@ let inData;
 // TIMER
 let countDown;
 let font;
-var initialSeconds, initialSecondsBreak;
+var initialSeconds, initialSecondsBreak, numberSessions;
 var seconds, secondsBreak;
+
+var currentSessionNumber = 1;
 
 var startBreak = false;
 
@@ -66,38 +68,44 @@ function setup() {
   textAlign(CENTER, CENTER);
   textSize(170);
   timer();
+
+  numberSessions = localStorage.getItem("numberSessions"); 
 }
 
 function draw() {
-  background(0)
-  var startClock = localStorage.getItem("startClock");
-  if (loaded && startClock) {
-    console.log("detections length: " + detections.length)
-    // if more than 0 items were detected, then execute appropriately.
-
-    if (startBreak) {
-      drawTimer();
-    }
-    else if (detections.length > 0) {
-      for (let i = 0; i < detections.length; i++) {
-        let object = detections[i];
-        // if a person is detected -> show counter.
-        if (object.label == 'person') {
-          person = true; // pause counter.
-
-          // if pause is false and person is true -> show timer.
-          if (!pause) {
-            // draw timer
-            drawTimer();
+  if (currentSessionNumber <= numberSessions) {
+    background(0)
+    var startClock = localStorage.getItem("startClock");
+    if (loaded && startClock) {
+      console.log("detections length: " + detections.length)
+      // if more than 0 items were detected, then execute appropriately.
+  
+      if (startBreak) {
+        drawTimer();
+      }
+      else if (detections.length > 0) {
+        for (let i = 0; i < detections.length; i++) {
+          let object = detections[i];
+          // if a person is detected -> show counter.
+          if (object.label == 'person') {
+            person = true; // pause counter.
+  
+            // if pause is false and person is true -> show timer.
+            if (!pause) {
+              // draw timer
+              drawTimer();
+            }
           }
         }
       }
+      // otherwise, if no detections were made -> we are sure there is no person
+      // in the frame, therefore pause timer.
+      else {
+        person = false;
+      }
     }
-    // otherwise, if no detections were made -> we are sure there is no person
-    // in the frame, therefore pause timer.
-    else {
-      person = false;
-    }
+  } else {
+    window.location.replace("setup.html");
   }
 }
 
@@ -170,8 +178,6 @@ function timer() {
   secondsBreak = initialSecondsBreak;
   var counter = setInterval(timer, 1000);
 
- 
-
   function timer() {
     // if paused is false AND person is in front of the computer -> continue timer.
     if (!pause && person && !startBreak) {
@@ -195,6 +201,7 @@ function timer() {
         serial.write("breakFinished*");
         startBreak = false;
         seconds = initialSeconds;
+        currentSessionNumber++;
       }
       countDown = secondsBreak;
     }
