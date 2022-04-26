@@ -1,7 +1,7 @@
 // if the soil is dryer than this number, then start watering
 const int dry = 270;
 
-const int pumpPin = 3;
+const int pumpPin = 7;
 const int soilSensor = A0;
 
 void setup() {
@@ -20,6 +20,8 @@ void loop() {
     digitalWrite(pumpPin, HIGH);
     delay(5000);
     Serial.println("Watered plants");
+    // WRITE TO DATABASE.
+    
   } else {
     Serial.println("Moisture of plant is OK. No watering needed " + String(moisture));
   }
