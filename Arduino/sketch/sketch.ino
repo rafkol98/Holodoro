@@ -2,6 +2,10 @@
 #include <nRF24L01.h>
 #include <RF24.h>
 
+#include <Wire.h>
+int topPossibleValue = 127;
+byte error, add;
+
 // Radio pins.
 #define CE_PIN   7
 #define CSN_PIN 8
@@ -35,11 +39,14 @@ void setup() {
   radio.setDataRate( RF24_250KBPS );
   radio.setRetries(3,5); // delay, count
   radio.openWritingPipe(slaveAddress);
+
+  Wire.begin();
 }
 
 void loop() {
   checkSerial();
   calculateDistance();
+  scanWireSlave();
   delay(200);
 }
 
@@ -136,4 +143,22 @@ void checkSerial() {
         Serial.read();
       }
   }
+}
+
+void scanWireSlave() {
+    Serial.print("Scanning from 0 up to "); Serial.print(topPossibleValue);
+  for(add = 1; add<topPossibleValue; add++ ) {
+    Wire.beginTransmission(add);
+    error = Wire.endTransmission();
+
+    if (error == 0) {
+      Serial.print("I2C device found at address: ");
+      Serial.println(add);
+    } else if (error == 4) {
+      Serial.print("Unknown error at address: ");
+      Serial.println(add);
+    }
+  }
+  Serial.println("SCAN FINISHED\n");
+  delay(5000);
 }

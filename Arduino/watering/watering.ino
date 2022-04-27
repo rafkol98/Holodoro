@@ -8,6 +8,7 @@ void setup() {
   pinMode(pumpPin, OUTPUT);
   pinMode(soilSensor, INPUT);
   Serial.begin(9600);
+  Serial1.begin(115200); // ESP-01 module operates at 115200 baud rate
 }
 
 void loop() {
@@ -25,6 +26,8 @@ void loop() {
   } else {
     Serial.println("Moisture of plant is OK. No watering needed " + String(moisture));
   }
+
+//  readAT();
 }
 
 /**
@@ -39,4 +42,12 @@ int averageReadings() {
   
   // return the average value of 20 readings.
   return sum/20;
+}
+
+
+void readAT() {
+  while(Serial1.available()>0) // While the data output is available on the Serial1 interface(the ESP-01 module)
+    Serial.write(Serial1.read());//Write it into the Serial Monitor
+  while(Serial.available()>0) // while the data is available input is available in the Serial Interface
+    Serial1.write(Serial.read());//Send it to the ESP-01 Module
 }
