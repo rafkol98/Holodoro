@@ -9,6 +9,7 @@ let inData;
 let countDown;
 let font;
 var initialSeconds, initialSecondsBreak, numberSessions;
+var totalSecondsToday = 0;
 var seconds, secondsBreak;
 
 var currentSessionNumber = 1;
@@ -34,7 +35,9 @@ var ultrasound;
 var ref;
 var userLoggedIn = false;
 var userID;
-var sessions, secondsFocused, lastVisit, streak;
+var sessions, secondsFocused, credit;
+
+var waterFlag = false;
 
 function preload() {
   font = loadFont('fonts/exo.ttf');
@@ -250,6 +253,9 @@ function updateDB() {
   if (userLoggedIn) {
     // Increment seconds focused by the current session seconds.
     secondsFocused += initialSeconds;
+    // add the seconds of the current session to the daily tally.
+    totalSecondsToday += initialSeconds;
+    checkIfUpdateCredit();
     sessions++
 
     console.log("seconds focused: "+secondsFocused + "sessions: "+sessions);
@@ -257,8 +263,7 @@ function updateDB() {
     var data = {
       secondsFocused: secondsFocused,
       sessions: sessions,
-      streak: streak,
-      lastVisit: lastVisit
+      credit: credit
     }
     ref.set(data);
   }
@@ -272,17 +277,10 @@ function readDB() {
       secondsFocused = snapshot.val();
     });
 
-    //TODO: fix the streak!
-    // get secondsFocused of user.
-    ref.child('lastVisit').on('value', (snapshot) => {
-      // if its the first time using the app then set the last visit as now.
-        lastVisit = snapshot.val();
-    });
-
-    // get secondsFocused of user.
-    ref.child('streak').on('value', (snapshot) => {
-      // if its the first time using the app then set the streak as 1 - as they are using the app now.
-        streak = snapshot.val();
+  
+    ref.child('credit').on('value', (snapshot) => {
+      // if its the first time using the app then set the credit as 1 - as they are using the app now.
+        credit = snapshot.val();
     });
 
 
@@ -292,7 +290,7 @@ function readDB() {
     });
      
     handleNulls(); // handle null values in the variables - when the user uses the app for the first time.
-    handleStreak(); 
+    handleCredit(); 
   }
 }
 
@@ -308,14 +306,10 @@ function handleNulls() {
     secondsFocused = 0;
   }
 
-  if (lastVisit == null) {
-    secondsFocused = new Date();
+  if (credit == null) {
+    credit = 0;
   }
-
-  if (streak == null) {
-    streak = 0;
-  }
-
+  console.log("credit: "+ credit);
 }
 
 /**
@@ -332,22 +326,13 @@ function str_pad_left(string,pad,length) {
   return (new Array(length+1).join(pad)+string).slice(-length);
 }
 
-
-function handleStreak() {
-  currentTime = new Date();
-  const msBetweenDates = Math.abs(lastVisit - currentTime);
-
-  var lastVisitDate = new Date(lastVisit * 1000);
-  //TODO: not on the same day but have 24 hours distance between them.
-  console.log("same day? "+ sameDay(currentTime, lastVisitDate));
-  // Convert ms to hours.
-  const hoursBetweenDates = msBetweenDates / (60 * 60 * 1000);
-
-  if (hoursBetweenDates < 24) {
-    streak++;
-    ref.child('streak').set(streak);
-  } else {
-    ref.child('streak').set(0);
+/**
+ * if the player has credit - set the watering flag to true so that the system checks 
+ * continually if the plants need watering. 
+ */
+function handleCredit() {
+  if (credit > 0 && !waterFlag) {
+    serial.write("water*");
   }
 }
 
@@ -386,4 +371,13 @@ function setupFirebase()
       readDB();
     }
   });
+}
+
+function checkIfUpdateCredit() {
+  // TODO: make it 60 - to be an hour.
+  if (secondsToMinutes(totalSecondsToday) >= 1) {
+    // increment credit and update the database.
+    credit++;
+    ref.child('credit').set(credit);
+  }
 }

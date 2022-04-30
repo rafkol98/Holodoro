@@ -46,7 +46,6 @@ void setup() {
 void loop() {
   checkSerial();
   calculateDistance();
-  scanWireSlave();
   delay(200);
 }
 
@@ -62,8 +61,7 @@ void sendRadioData(boolean session) {
    }
 
 acknowledge(rslt);
-   
-    
+      
 }
 
 void acknowledge(boolean rslt) {
@@ -116,7 +114,6 @@ void playPiezoSound(boolean isBreakOver) {
   }
 }
 
-
   /**
  * Check if for new messages on the serial port. This is used to control the LED to light up.
  */
@@ -137,28 +134,34 @@ void checkSerial() {
     if (getStart == "breakFinished") {
       playPiezoSound(true);
       sendRadioData(true);
-    } 
-    
+    }
+
+    if (getStart == "writeToDB") {
+      getFromSlave();
+     }
+  
      while(Serial.available() > 0) {
         Serial.read();
       }
   }
 }
 
-void scanWireSlave() {
-    Serial.print("Scanning from 0 up to "); Serial.print(topPossibleValue);
-  for(add = 1; add<topPossibleValue; add++ ) {
-    Wire.beginTransmission(add);
-    error = Wire.endTransmission();
+void getFromSlave() {
+  delay(2000);
 
-    if (error == 0) {
-      Serial.print("I2C device found at address: ");
-      Serial.println(add);
-    } else if (error == 4) {
-      Serial.print("Unknown error at address: ");
-      Serial.println(add);
+  byte a,b;
+  Wire.requestFrom(8,6, false);
+
+  while(Wire.available()) {
+    char c = Wire.read();
+    // if message is not * (42 - ascii), print the message.
+    if (c != 42) {
+      Serial.print(c);
+    } else {
+      Serial.print(",");
     }
   }
-  Serial.println("SCAN FINISHED\n");
-  delay(5000);
+
+  Serial.println("");
+  delay(1000);
 }

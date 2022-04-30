@@ -1,33 +1,46 @@
 // if the soil is dryer than this number, then start watering
-const int dry = 270;
+#include <Wire.h>
+const int dry = 200;
 
 const int pumpPin = 7;
 const int soilSensor = A0;
 
+boolean checkWater = false;
+
 void setup() {
   pinMode(pumpPin, OUTPUT);
+   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(soilSensor, INPUT);
   Serial.begin(9600);
-  Serial1.begin(115200); // ESP-01 module operates at 115200 baud rate
+  
+  Wire.begin(8);
+  Wire.onRequest(requestEvent);
 }
 
 void loop() {
+//  checkWatering();
+  if (checkWater) {
+    checkWatering();
+    delay(10000);
+  }
+}
+
+void checkWatering() {
   digitalWrite(pumpPin, LOW);
   // read current moisture
   int moisture = averageReadings();
+  
   delay(1000);
   
   if (moisture >= dry) { 
     digitalWrite(pumpPin, HIGH);
     delay(5000);
-    Serial.println("Watered plants");
-    // WRITE TO DATABASE.
+    digitalWrite(pumpPin, LOW);
+    Serial.println("Watered plants" + String(moisture));
     
   } else {
     Serial.println("Moisture of plant is OK. No watering needed " + String(moisture));
   }
-
-//  readAT();
 }
 
 /**
@@ -44,10 +57,11 @@ int averageReadings() {
   return sum/20;
 }
 
-
-void readAT() {
-  while(Serial1.available()>0) // While the data output is available on the Serial1 interface(the ESP-01 module)
-    Serial.write(Serial1.read());//Write it into the Serial Monitor
-  while(Serial.available()>0) // while the data is available input is available in the Serial Interface
-    Serial1.write(Serial.read());//Send it to the ESP-01 Module
+void requestEvent() {
+  int r = random(1,8);
+  checkWater = true;
+  char buffer[7];
+  Wire.write("msg:");
+  Wire.write(itoa(r,buffer,10));
+  Wire.write("*");
 }
