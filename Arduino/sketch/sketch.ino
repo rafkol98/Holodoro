@@ -127,6 +127,7 @@ void checkSerial() {
       sendRadioData(false);
     } 
 
+    // Initial Case - Session started turn on led lights to red.
     if (getStart == "session") {
       sendRadioData(true);
     } 
@@ -136,7 +137,7 @@ void checkSerial() {
       sendRadioData(true);
     }
 
-    if (getStart == "writeToDB") {
+    if (getStart == "water") {
       getFromSlave();
      }
   

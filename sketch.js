@@ -2,14 +2,14 @@
 
 //Serial communication.
 let serial;
-let portnName = '/dev/tty.usbmodem145401'
+let portnName = '/dev/tty.usbmodem146301'
 let inData;
 
 // TIMER
 let countDown;
 let font;
 var initialSeconds, initialSecondsBreak, numberSessions;
-var totalSecondsToday = 0;
+var totalSecondsForCredit = 0;
 var seconds, secondsBreak;
 
 var currentSessionNumber = 1;
@@ -69,10 +69,10 @@ function setup() {
 
   textFont(font);
   textAlign(CENTER, CENTER);
-  textSize(170);
+  textSize(150);
   timer();
 
-  numberSessions = localStorage.getItem("numberSessions"); 
+  numberSessions = localStorage.getItem("numberSessions");
 }
 
 function draw() {
@@ -82,7 +82,7 @@ function draw() {
     if (loaded && startClock) {
       console.log("detections length: " + detections.length)
       // if more than 0 items were detected, then execute appropriately.
-  
+
       if (startBreak) {
         drawTimer();
       }
@@ -92,7 +92,7 @@ function draw() {
           // if a person is detected -> show counter.
           if (object.label == 'person') {
             person = true; // pause counter.
-  
+
             // if pause is false and person is true -> show timer.
             if (!pause) {
               // draw timer
@@ -130,41 +130,60 @@ function drawTimer() {
   // colours change depending if working or break.
   if (startBreak) {
     fill('rgb(40,255,0)')
-  } else{
+  } else {
     fill('rgb(0,181,226)')
   }
-  
+
   var timerString = secondsToMinutes(countDown);
+  var sessionString = currentSessionNumber + " of " + numberSessions;
 
   // Bottom
   push()
-  translate(0, 300)
+  translate(0, 320)
   rotate(radians(180))
-  scale(-1,1);
+  scale(-1, 1);
   text(timerString, 0, 0)
+
+  textSize(50);
+  translate(0, 130)
+  scale(-1, 1);
+  text(sessionString, 0, 0)
   pop()
 
   // Top
+  // textSize(150);
   push()
-  translate(0, -300)
-  scale(-1,1);
+  translate(0, -320)
+  scale(-1, 1);
   text(timerString, 0, 0)
+
+  textSize(50);
+  translate(0, 130)
+  text(sessionString, 0, 0)
   pop()
 
   // Left
   push()
-  translate(-300, 0)
+  translate(-320, 0)
   rotate(radians(-90))
-  scale(-1,1);
+  scale(-1, 1);
   text(timerString, 0, 0)
+
+  textSize(50);
+  translate(0, 130)
+  text(sessionString, 0, 0)
   pop()
 
   // Right
   push()
   translate(300, 0)
   rotate(radians(90))
-  scale(-1,1);
+  scale(-1, 1);
   text(timerString, 0, 0)
+
+  textSize(50);
+  translate(0, 130)
+  text(sessionString, 0, 0)
   pop()
 }
 
@@ -174,17 +193,17 @@ function drawTimer() {
 function timer() {
 
   //TODO: number sessions repeat.
-  initialSeconds = localStorage.getItem("minutesSession") * 60; 
+  initialSeconds = localStorage.getItem("minutesSession") * 60;
   initialSecondsBreak = localStorage.getItem("minutesBreak") * 60;
 
-  seconds = initialSeconds; 
+  seconds = initialSeconds;
   secondsBreak = initialSecondsBreak;
   var counter = setInterval(timer, 1000);
 
   function timer() {
     // if paused is false AND person is in front of the computer -> continue timer.
     if (!pause && person && !startBreak) {
-  
+
       if (seconds > 0) {
         seconds = seconds - 1;
       } else if (seconds == 0) {
@@ -197,16 +216,22 @@ function timer() {
       }
       countDown = seconds;
     } else if (startBreak) {
-      secondsBreak = secondsBreak - 1;
+      // if its the last session - no need to execute th break.
+      if (currentSessionNumber != numberSessions) {
+        secondsBreak = secondsBreak - 1;
 
-      if (secondsBreak == 0) {
-        // Write to serial that the break finished - play break sound and turn on the red LEDS on slave.
-        serial.write("breakFinished*");
-        startBreak = false;
-        seconds = initialSeconds;
+        if (secondsBreak == 0) {
+          // Write to serial that the break finished - play break sound and turn on the red LEDS on slave.
+          serial.write("breakFinished*");
+          startBreak = false;
+          seconds = initialSeconds;
+          currentSessionNumber++;
+        }
+        countDown = secondsBreak;
+      } else {
         currentSessionNumber++;
       }
-      countDown = secondsBreak;
+
     }
   }
 }
@@ -249,17 +274,18 @@ function controlUltrasound() {
  * Update datbase after a session finished.
  */
 function updateDB() {
-  
+
   if (userLoggedIn) {
     // Increment seconds focused by the current session seconds.
     secondsFocused += initialSeconds;
     // add the seconds of the current session to the daily tally.
-    totalSecondsToday += initialSeconds;
+    totalSecondsForCredit += initialSeconds;
     checkIfUpdateCredit();
+    console.log(totalSecondsForCredit);
     sessions++
 
-    console.log("seconds focused: "+secondsFocused + "sessions: "+sessions);
-    
+    console.log("seconds focused: " + secondsFocused + "sessions: " + sessions);
+
     var data = {
       secondsFocused: secondsFocused,
       sessions: sessions,
@@ -277,10 +303,12 @@ function readDB() {
       secondsFocused = snapshot.val();
     });
 
-  
+
     ref.child('credit').on('value', (snapshot) => {
       // if its the first time using the app then set the credit as 1 - as they are using the app now.
-        credit = snapshot.val();
+      credit = snapshot.val();
+      console.log("miaou credit: " + credit);
+      handleCredit();
     });
 
 
@@ -288,9 +316,9 @@ function readDB() {
     ref.child('sessions').on('value', (snapshot) => {
       sessions = snapshot.val();
     });
-     
+
     handleNulls(); // handle null values in the variables - when the user uses the app for the first time.
-    handleCredit(); 
+
   }
 }
 
@@ -309,21 +337,21 @@ function handleNulls() {
   if (credit == null) {
     credit = 0;
   }
-  console.log("credit: "+ credit);
+  console.log("credit: " + credit);
 }
 
 /**
  * Convert seconds to minutes.
  */
-function secondsToMinutes(time){
-  return  str_pad_left(Math.floor(time / 60),'0',2) + ':' + str_pad_left(time % 60,'0',2);
+function secondsToMinutes(time) {
+  return str_pad_left(Math.floor(time / 60), '0', 2) + ':' + str_pad_left(time % 60, '0', 2);
 }
 
 /**
  * Pad the timer string.
  */
-function str_pad_left(string,pad,length) {
-  return (new Array(length+1).join(pad)+string).slice(-length);
+function str_pad_left(string, pad, length) {
+  return (new Array(length + 1).join(pad) + string).slice(-length);
 }
 
 /**
@@ -331,8 +359,11 @@ function str_pad_left(string,pad,length) {
  * continually if the plants need watering. 
  */
 function handleCredit() {
+  console.log("credit " + credit)
   if (credit > 0 && !waterFlag) {
+    console.log("mesa!")
     serial.write("water*");
+    waterFlag = true;
   }
 }
 
@@ -343,8 +374,7 @@ function sameDay(d1, d2) {
 }
 
 
-function setupFirebase()
-{
+function setupFirebase() {
   // Configuration of firebase.
   const firebaseConfig = {
     apiKey: "AIzaSyDp73X5Dv95oRglSHSbsdeC67iykPH0bx8",
@@ -366,7 +396,7 @@ function setupFirebase()
       // User logged in already or has just logged in.
       console.log(user.uid);
       userID = user.uid;
-    
+
       // Read DB.
       readDB();
     }
@@ -374,10 +404,12 @@ function setupFirebase()
 }
 
 function checkIfUpdateCredit() {
-  // TODO: make it 60 - to be an hour.
-  if (secondsToMinutes(totalSecondsToday) >= 1) {
+  // If an hour passed of focused work, then give one watering credit.
+  if (totalSecondsForCredit / 60 >= 60) {
+    totalSecondsForCredit = 0;
     // increment credit and update the database.
     credit++;
     ref.child('credit').set(credit);
+    handleCredit();
   }
 }

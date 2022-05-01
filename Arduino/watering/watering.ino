@@ -9,7 +9,7 @@ boolean checkWater = false;
 
 void setup() {
   pinMode(pumpPin, OUTPUT);
-   pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
   pinMode(soilSensor, INPUT);
   Serial.begin(9600);
   
@@ -20,6 +20,7 @@ void setup() {
 void loop() {
 //  checkWatering();
   if (checkWater) {
+    digitalWrite(LED_BUILTIN, HIGH);
     checkWatering();
     delay(10000);
   }
