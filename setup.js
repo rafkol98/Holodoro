@@ -2,9 +2,9 @@ var myRec = new p5.SpeechRec('en-US', parseResult); // new P5.SpeechRec object
 myRec.continuous = true; // do continuous recognition
 myRec.interimResults = true; // allow partial recognition (faster, less accurate)
 
-var minutesSession = 0;
-var minutesBreak = 0;
-var numberSessions = 0;
+var minutesSession = "'X minutes study'";
+var minutesBreak = "'Y minutes break'";
+var numberSessions = "'Repeat Z times'";
 
 var openedClock = false;
 
@@ -31,10 +31,10 @@ function draw() {
 
     textSize(20);
     textAlign(CENTER);
-
-    text("Minutes SESSION: " + minutesSession, 100, 50);
-    text("Minutes BREAK: " + minutesBreak, 500, 50);
-    text("Number of sessions: " + numberSessions, 900, 50);
+    text("Say the following commands, replacing the variables with number of minutes you wish for each.", windowWidth/2, 50);
+    text("Minutes: " + minutesSession, 200, 100);
+    text("Break: " + minutesBreak, 500, 100);
+    text("Sessions: " + numberSessions, 800, 100);
 
 
     let startPoint = [(windowWidth / 2)+200, size];
