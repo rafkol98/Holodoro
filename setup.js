@@ -176,7 +176,7 @@ function serialEvent() {
         // Split the string to read values.
         var sensors = split(inString, ';');
 
-        // if length is 2 - then read the height.
+        // if length is 3 -> then read the height.
         if (sensors.length == 3) {
             heightToday = sensors[1];
             console.log("height today " + heightToday);

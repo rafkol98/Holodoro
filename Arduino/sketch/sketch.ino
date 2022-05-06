@@ -55,14 +55,22 @@ void loop() {
   delay(200);
 }
 
-void sendRadioData(boolean session) {
+void sendRadioData(int status) {
    bool rslt;
-   
-   if (session) {
+
+   // turn LEDs red - session.
+   if (status == 1) {
     char sessionMessage[8] = "session";
     rslt = radio.write( &sessionMessage, sizeof(sessionMessage));
-   } else {
+   } 
+   // turn LEDs green - break.
+   else if(status == 0) {
     char sessionMessage[6] = "break";
+    rslt = radio.write( &sessionMessage, sizeof(sessionMessage));
+   } 
+   // turn off LEDs - finished all sessions.
+   else {
+    char sessionMessage[9] = "finished";
     rslt = radio.write( &sessionMessage, sizeof(sessionMessage));
    }
 
@@ -156,22 +164,27 @@ void checkSerial() {
     // play piezo sound, if "piezo" was received.
     if (getStart == "piezo") {
       playPiezoSound(false);
-      sendRadioData(false);
+      sendRadioData(0);
     } 
 
     // Initial Case - Session started turn on led lights to red.
     if (getStart == "session") {
-      sendRadioData(true);
+      sendRadioData(1);
     } 
     
     if (getStart == "breakFinished") {
       playPiezoSound(true);
-      sendRadioData(true);
+      sendRadioData(1);
     }
 
     if (getStart == "water") {
       getFromSlave();
      }
+     
+    // When all sessions are finished turn off leds.
+    if (getStart == "finished") {
+      sendRadioData(-1);
+    } 
   
      while(Serial.available() > 0) {
         Serial.read();

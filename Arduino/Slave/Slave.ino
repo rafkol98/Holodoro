@@ -54,13 +54,19 @@ void showData() {
       
         if(data.equals("session")) {
             lightUpRED();
-        } else {
+        } else if (data.equals("finished")) {
+          turnOffLeds();
+        }
+        else {
           lightUpGREEN();
         }
     }
     newData = false;
 }
 
+/**
+ * Light up all LEDs to Green - come in.
+ */
 void lightUpGREEN() {
   for(int i=0; i< NUMPIXELS;i++) {
     pixels.setPixelColor(i, pixels.Color(0,255,0)); // green 
@@ -68,9 +74,23 @@ void lightUpGREEN() {
   pixels.show();
 }
 
+/**
+ * Light up all LEDs to Red - Do not disturb.
+ */
 void lightUpRED() {
   for(int i=0; i< NUMPIXELS;i++) {
     pixels.setPixelColor(i, pixels.Color(255,0,0)); // red 
+  }
+  pixels.show();
+}
+
+/**
+ * Turn of all LEDs.
+ */
+void turnOffLeds() {
+  // turn off all leds.
+  for(int i=0; i<NUMPIXELS; i++) {
+   pixels.setPixelColor(i, pixels.Color(0, 0, 0));
   }
   pixels.show();
 }

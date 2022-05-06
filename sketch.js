@@ -78,6 +78,7 @@ function draw() {
   if (currentSessionNumber <= numberSessions) {
     background(0)
     var startClock = localStorage.getItem("startClock");
+   
     if (loaded && startClock) {
       console.log("detections length: " + detections.length)
       // if more than 0 items were detected, then execute appropriately.
@@ -107,6 +108,7 @@ function draw() {
       }
     }
   } else {
+    serial.write("finished*");
     window.location.replace("setup.html");
   }
 }
