@@ -23,14 +23,14 @@ long duration; // variable for the duration of sound wave travel
 double distance; // variable for the distance measurement
 
 // PIEZO BUZZER
-int piezoPin = 4;
+int piezoPin = 10;
 float sinVal;
 int toneVal;
 
 boolean pause = false;
 
 void setup() {
-//   pinMode(4, INPUT_PULLUP); // pull up button - for pause.
+  pinMode(4, INPUT_PULLUP); // pull up button - for pause.
     
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an OUTPUT
   pinMode(echoPin, INPUT); // Sets the echoPin as an INPUT
@@ -49,8 +49,8 @@ void setup() {
 
 void loop() {
   checkSerial();
-//  checkPauseButton();
-  Serial.print(random(10, 25));
+  checkPauseButton();
+  Serial.print(pause);
   Serial.println(";");
   delay(200);
 }

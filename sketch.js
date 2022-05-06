@@ -2,7 +2,7 @@
 
 //Serial communication.
 let serial;
-let portnName = '/dev/tty.usbmodem146401'
+let portnName = '/dev/tty.usbmodem144401'
 let inData;
 
 // TIMER
@@ -258,6 +258,8 @@ function serialEvent() {
 function controlPause() {
   if (pauseButtonValue == 1) {
     pause = true;
+  } else {
+    pause = false;
   }
 }
 
