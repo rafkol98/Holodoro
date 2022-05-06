@@ -20,14 +20,18 @@ char txNum = '0';
 int echoPin = 2;
 const int trigPin = 3;
 long duration; // variable for the duration of sound wave travel
-int distance; // variable for the distance measurement
+double distance; // variable for the distance measurement
 
 // PIEZO BUZZER
 int piezoPin = 4;
 float sinVal;
 int toneVal;
 
+boolean pause = false;
+
 void setup() {
+//   pinMode(4, INPUT_PULLUP); // pull up button - for pause.
+    
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an OUTPUT
   pinMode(echoPin, INPUT); // Sets the echoPin as an INPUT
  
@@ -45,7 +49,9 @@ void setup() {
 
 void loop() {
   checkSerial();
-  calculateDistance();
+//  checkPauseButton();
+  Serial.print(random(10, 25));
+  Serial.println(";");
   delay(200);
 }
 
@@ -89,6 +95,7 @@ void calculateDistance() {
 
   // read ECHO and return sound wave travel time in seconds. This is used to calculate distance.
   duration = pulseIn(echoPin, HIGH); 
+ 
   distance = duration * 0.034 / 2;
 
   // Print the distance to serial.
@@ -114,12 +121,28 @@ void playPiezoSound(boolean isBreakOver) {
   }
 }
 
+
+/**
+ * Invert the pause button flag whenever the button is pressed.
+ */
+void checkPauseButton() {
+    int sensorVal = digitalRead(4);
+    // check for low because using input pullup -> reverse.
+    if (sensorVal == LOW) {
+      pause = !pause;
+    }  
+}
+
   /**
  * Check if for new messages on the serial port. This is used to control the LED to light up.
  */
 void checkSerial() {
   if(Serial.available() > 0) {
     String getStart = Serial.readStringUntil('*');
+
+    if (getStart == "height") {
+       calculateDistance();
+    } 
     
     // play piezo sound, if "piezo" was received.
     if (getStart == "piezo") {

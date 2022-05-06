@@ -2,7 +2,7 @@
 
 //Serial communication.
 let serial;
-let portnName = '/dev/tty.usbmodem146301'
+let portnName = '/dev/tty.usbmodem146401'
 let inData;
 
 // TIMER
@@ -18,7 +18,7 @@ var startBreak = false;
 
 var person = true;
 var pause = false; //is timer paused
-var timePaused, currentTime;
+
 
 // VIDEO
 let video;
@@ -29,7 +29,7 @@ let detections = [];
 var loaded = false;
 
 // Serial controls.
-var ultrasound;
+var pauseButtonValue = 0;
 
 // Firebase.
 var ref;
@@ -47,7 +47,7 @@ function setup() {
   setupFirebase();
 
   // serial communication.
-  serial = new p5.SerialPort('192.168.0.4')
+  serial = new p5.SerialPort('192.168.0.4');
   serial.on('data', serialEvent);
   serial.open(portnName);
 
@@ -245,28 +245,19 @@ function serialEvent() {
   if (inString.length > 0) {
     // Split the string to read values.
     var sensors = split(inString, ';');
-    ultrasound = sensors[0];
-    console.log('ultrasound' + ultrasound);
+    pauseButtonValue = sensors[0];
+    console.log("pause val: "+pauseButtonValue);
     // Check the ultrasound sensor and act appropriately.
-    controlUltrasound();
+    controlPause();
   }
 }
 
 /**
  *  Control the ultrasound sensor.
  */
-function controlUltrasound() {
-  currentTime = new Date(); // get current time.
-
-  // if object is within 20 centimeters of the sensor -> pause screen (if not paused).
-  // if the screen was already paused -> unpause (toggle boolean).
-  if (ultrasound <= 20) {
-    // if time paused = undefined -> first time trying to pause.
-    // otherwise if 2 seconds passed since the pause then you can unpause.
-    if ((timePaused == undefined) || ((currentTime - timePaused) > 2000)) {
-      pause = !pause;
-      timePaused = new Date(); // set the timestamp when the pomodoro session was paused.
-    }
+function controlPause() {
+  if (pauseButtonValue == 1) {
+    pause = true;
   }
 }
 
@@ -371,36 +362,6 @@ function sameDay(d1, d2) {
   return d1.getFullYear() === d2.getFullYear() &&
     d1.getMonth() === d2.getMonth() &&
     d1.getDate() === d2.getDate();
-}
-
-
-function setupFirebase() {
-  // Configuration of firebase.
-  const firebaseConfig = {
-    apiKey: "AIzaSyDp73X5Dv95oRglSHSbsdeC67iykPH0bx8",
-    authDomain: "holodoro-4d629.firebaseapp.com",
-    databaseURL: "https://holodoro-4d629-default-rtdb.firebaseio.com",
-    projectId: "holodoro-4d629",
-    storageBucket: "holodoro-4d629.appspot.com",
-    messagingSenderId: "644743674668",
-    appId: "1:644743674668:web:399d42bfa528290a6dca89",
-    measurementId: "G-FW5WR4HL00"
-  };
-
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  database = firebase.database();
-  firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-      userLoggedIn = true;
-      // User logged in already or has just logged in.
-      console.log(user.uid);
-      userID = user.uid;
-
-      // Read DB.
-      readDB();
-    }
-  });
 }
 
 function checkIfUpdateCredit() {

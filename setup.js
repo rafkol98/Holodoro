@@ -6,13 +6,17 @@ var minutesSession = "'X minutes study'";
 var minutesBreak = "'Y minutes break'";
 var numberSessions = "'Repeat Z times'";
 
+var joinedDate, lastWateredPlants, secondsFocused, initialHeight, heightToday;
 var openedClock = false;
 
-let size = 900;
+let size = 550;
 
 function setup() {
+    $('#alertOne').hide();
+
+    setupFirebase();
     // graphics stuff:
-    canvas = createCanvas(windowWidth, windowHeight);
+    canvas = createCanvas(windowWidth, 600);
 
     //myRec.onResult = parseResult; // now in the constructor
     myRec.start(); // start engine
@@ -31,24 +35,30 @@ function draw() {
 
     textSize(20);
     textAlign(CENTER);
-    text("Say the following commands, replacing the variables with number of minutes you wish for each.", windowWidth/2, 50);
-    text("Minutes: " + minutesSession, 200, 100);
-    text("Break: " + minutesBreak, 500, 100);
-    text("Sessions: " + numberSessions, 800, 100);
+    text("Say the following commands, replacing the variables with number of minutes you wish for each.", windowWidth / 2, 40);
+    text("Minutes: " + minutesSession, 200, 80);
+    text("Break: " + minutesBreak, 500, 80);
+    text("Sessions: " + numberSessions, 800, 80);
+    text("Once Ready say 'Start'", windowWidth / 2, 120);
 
 
-    let startPoint = [(windowWidth / 2)+200, size];
-  let length = 200;
-  let weight = 25;
-  strokeWeight(weight);
-  stroke(30);
-  let branchAngle = PI / 2;
-  branch(startPoint, weight, length, branchAngle);
+    let startPoint = [(windowWidth / 2) + 200, size];
+    let length = (600/15)*2;
+    let weight = 10;
+    strokeWeight(weight);
+    stroke(30);
+    let branchAngle = PI / 2;
+    branch(startPoint, weight, length, branchAngle);
+   
 
-  let length2 = 100;
-  let startPoint2 = [(windowWidth / 2)-200, size];
-  branch(startPoint2, weight, length2, branchAngle);
-  
+
+    let length2 = (600/30)*2;
+    let startPoint2 = [(windowWidth / 2) - 200, size];
+    branch(startPoint2, weight, length2, branchAngle);
+    text("Height Today: 30 cm", (windowWidth / 2) + 200, 580);
+    text("Initial Height: 15 cm", (windowWidth / 2) - 200, 580);
+    
+
 }
 
 function parseResult() {
@@ -67,41 +77,76 @@ function parseResult() {
     } else if (mostrecentword.indexOf("start") !== -1 || mostrecentword.indexOf("ready") !== -1) {
         console.log("starting!!!")
         if (!openedClock) {
-            openedClock = true;
-            localStorage.setItem("startClock", true);
-            window.open("./clock.html");
+            if ((minutesSession != "'X minutes study'") && (minutesBreak != "'Y minutes break'") && (numberSessions != "'Repeat Z times'")) {
+                openedClock = true;
+                localStorage.setItem("startClock", true);
+                window.open("./clock.html");
+            } else {
+                $('#alertOne').show();
+            }
         }
-        
+
     }
 }
 
 
 function branch(startPoint, weight, length, angle) {
-    // 𝑥1=𝑥+𝑛cos𝜃
-    // 𝑦1=𝑦+𝑛sin𝜃
     let x1 = startPoint[0] + length * cos(angle);
     let y1 = startPoint[1] - length * sin(angle);
     let endpoint = [x1, y1];
-  
+
     strokeWeight(weight);
     line(startPoint[0], startPoint[1], endpoint[0], endpoint[1]);
-  
-    let angleMax = angle + (PI / 4);
-    let angleMin = angle - PI / 4;
-    let angleDiff =  angleMax - angleMin - (PI / 4);
-    let angle1 = angleMax - angleDiff / 2;
-    let angle2 = angleMin + angleDiff / 2;
+
+    let angleMax = angle + (PI / 10);
+    let angleMin = angle - PI / 10;
+    let angleDiff = angleMax - angleMin - (PI / 4);
+    let angle1 = angleMax - angleDiff / 5;
+    let angle2 = angleMin + angleDiff / 5;
     let newWeight = weight * 0.7;
     let newLength = length * 0.7;
-  
+
     if (newLength < 3) {
-      return;
+        return;
     }
-  
+
     branch(endpoint, newWeight, newLength, angle1);
     branch(endpoint, newWeight, newLength, angle2);
-  }
-  
-  function randomBetween(low, high) {
+}
+
+function randomBetween(low, high) {
     return random(high - low) + low;
-  }
+}
+
+function readDB() {
+    if (userLoggedIn) {
+
+    var initialHeight, heightToday;
+      ref = database.ref('users').child(userID)
+      // get joined date of user.
+      ref.child('joinedDate').on('value', (snapshot) => {
+        $("#joinedDateTxt").text(snapshot.val());
+      });
+
+       // 
+       ref.child('lastWateredPlants').on('value', (snapshot) => {
+        $("#lastWateredTxt").text(snapshot.val());
+      });
+
+      // 
+      ref.child('initialHeight').on('value', (snapshot) => {
+        initialHeight = snapshot.val()
+      });
+
+       // 
+       ref.child('heightToday').on('value', (snapshot) => {
+        heightToday = snapshot.val()
+      });
+
+      ref.child('secondsFocused').on('value', (snapshot) => {
+        $("#hoursFocusedTxt").text(snapshot.val());
+      });
+
+
+    }
+}
