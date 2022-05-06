@@ -19,7 +19,6 @@ var startBreak = false;
 var person = true;
 var pause = false; //is timer paused
 
-
 // VIDEO
 let video;
 let detector;
@@ -284,7 +283,7 @@ function updateDB() {
       sessions: sessions,
       credit: credit
     }
-    ref.set(data);
+    ref.update(data);
   }
 }
 

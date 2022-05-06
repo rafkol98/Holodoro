@@ -1,3 +1,8 @@
+//Serial communication.
+let serial;
+let portnName = '/dev/tty.usbmodem144301'
+let inData;
+
 var myRec = new p5.SpeechRec('en-US', parseResult); // new P5.SpeechRec object
 myRec.continuous = true; // do continuous recognition
 myRec.interimResults = true; // allow partial recognition (faster, less accurate)
@@ -14,6 +19,14 @@ let size = 550;
 function setup() {
     $('#alertOne').hide();
 
+    // serial communication.
+    serial = new p5.SerialPort('192.168.0.4');
+    serial.on('data', serialEvent);
+    serial.open(portnName);
+
+    // read height of plant.
+    serial.write("height*");
+
     setupFirebase();
     // graphics stuff:
     canvas = createCanvas(windowWidth, 600);
@@ -25,6 +38,8 @@ function setup() {
 }
 
 function draw() {
+    calculateHeightToday();
+
     noStroke();
     background(255, 255, 255);
     fill(0, 0, 0, 255);
@@ -36,29 +51,26 @@ function draw() {
     textSize(20);
     textAlign(CENTER);
     text("Say the following commands, replacing the variables with number of minutes you wish for each.", windowWidth / 2, 40);
-    text("Minutes: " + minutesSession, 200, 80);
-    text("Break: " + minutesBreak, 500, 80);
-    text("Sessions: " + numberSessions, 800, 80);
+    text("Minutes: " + minutesSession, windowWidth / 2 - 400, 80);
+    text("Break: " + minutesBreak, windowWidth / 2, 80);
+    text("Sessions: " + numberSessions, windowWidth / 2 + 400, 80);
     text("Once Ready say 'Start'", windowWidth / 2, 120);
 
 
     let startPoint = [(windowWidth / 2) + 200, size];
-    let length = (600/15)*2;
+    let length = (600 / 15) * 2;
     let weight = 10;
     strokeWeight(weight);
     stroke(30);
     let branchAngle = PI / 2;
     branch(startPoint, weight, length, branchAngle);
-   
 
 
-    let length2 = (600/30)*2;
+    let length2 = (600 / 30) * 2;
     let startPoint2 = [(windowWidth / 2) - 200, size];
     branch(startPoint2, weight, length2, branchAngle);
-    text("Height Today: 30 cm", (windowWidth / 2) + 200, 580);
-    text("Initial Height: 15 cm", (windowWidth / 2) - 200, 580);
-    
-
+    text("Height Today: " + heightToday + " cm", (windowWidth / 2) + 200, 580);
+    text("Initial Height: "+ initialHeight + " cm", (windowWidth / 2) - 200, 580);
 }
 
 function parseResult() {
@@ -118,35 +130,56 @@ function randomBetween(low, high) {
     return random(high - low) + low;
 }
 
+function calculateHeightToday() {
+    if (initialHeight != undefined) {
+        var growth = heightToday - initialHeight;
+        $("#plantGrowthTxt").text(growth.toFixed(2));
+    }
+}
+
 function readDB() {
     if (userLoggedIn) {
 
-    var initialHeight, heightToday;
-      ref = database.ref('users').child(userID)
-      // get joined date of user.
-      ref.child('joinedDate').on('value', (snapshot) => {
-        $("#joinedDateTxt").text(snapshot.val());
-      });
+        ref = database.ref('users').child(userID)
+        // get joined date of user.
+        ref.child('credit').on('value', (snapshot) => {
+            $("#creditTxt").text(snapshot.val());
+        });
 
-       // 
-       ref.child('lastWateredPlants').on('value', (snapshot) => {
-        $("#lastWateredTxt").text(snapshot.val());
-      });
+        ref.child('sessions').on('value', (snapshot) => {
+            $("#sessionsTxt").text(snapshot.val());
+        });
 
-      // 
-      ref.child('initialHeight').on('value', (snapshot) => {
-        initialHeight = snapshot.val()
-      });
+        // Get initial height of the plant.
+        ref.child('initialHeight').on('value', (snapshot) => {
+            initialHeight = snapshot.val()
+            // if initial height is undefined -> it means its the first time we are reading
+            // the height of the tree --> write it to the database.
+            if (initialHeight == undefined) {
+                ref.child('initialHeight').set(heightToday);
+            }
+        });
 
-       // 
-       ref.child('heightToday').on('value', (snapshot) => {
-        heightToday = snapshot.val()
-      });
+        ref.child('secondsFocused').on('value', (snapshot) => {
+            $("#hoursFocusedTxt").text(converrtSecondsToHours(snapshot.val()) + " Hours");
+        });
+    }
+}
 
-      ref.child('secondsFocused').on('value', (snapshot) => {
-        $("#hoursFocusedTxt").text(snapshot.val());
-      });
+/**
+ * Read a string from the serial port until newline is encountered.
+ */
+function serialEvent() {
+    var inString = serial.readStringUntil('\r\n');
 
+    if (inString.length > 0) {
+        // Split the string to read values.
+        var sensors = split(inString, ';');
 
+        // if length is 2 - then read the height.
+        if (sensors.length == 3) {
+            heightToday = sensors[1];
+            console.log("height today " + heightToday);
+        }
     }
 }

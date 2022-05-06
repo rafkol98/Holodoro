@@ -84,21 +84,30 @@ void acknowledge(boolean rslt) {
  * Calculate distance from sensor using ultrasonic sound.
  */
 void calculateDistance() {
-  // Clears the trigPin condition.
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
+  double sumDistance = 0;
+  // Get the average of distance over 40 readings - to avoid bad readings.
+  for (int i=0; i<40; i++) {
+    // Clears the trigPin condition.
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+  
+    // Sets the trigPin HIGH for 10 microseconds.
+    digitalWrite(trigPin, HIGH);  
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+  
+    // read ECHO and return sound wave travel time in seconds. This is used to calculate distance.
+    duration = pulseIn(echoPin, HIGH); 
+   
+    sumDistance += duration * 0.034 / 2;
+  }
 
-  // Sets the trigPin HIGH for 10 microseconds.
-  digitalWrite(trigPin, HIGH);  
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-
-  // read ECHO and return sound wave travel time in seconds. This is used to calculate distance.
-  duration = pulseIn(echoPin, HIGH); 
- 
-  distance = duration * 0.034 / 2;
+  // get the average distance.
+  // Height of stand - height of plant 
+  distance = 45 - (sumDistance / 40);
 
   // Print the distance to serial.
+  Serial.print("height;"); 
   Serial.print(distance);  
   Serial.println(";");  
 }
