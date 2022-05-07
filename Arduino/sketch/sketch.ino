@@ -177,13 +177,20 @@ void checkSerial() {
       sendRadioData(1);
     }
 
-    if (getStart == "water") {
+    if (getStart == "moisture") {
       getFromSlave();
      }
 
-     if (getStart == "credit") {
-      sendToSlave(8);
+     // force watering.
+     if (getStart == "force") {
+      wateringSlave(false);
      }
+
+    // autonomous mode watering.
+    if (getStart == "autonomous") {
+      wateringSlave(true);
+     }
+     
      
     // When all sessions are finished turn off leds.
     if (getStart == "finished") {
@@ -212,14 +219,22 @@ void getFromSlave() {
     }
   }
 
-  Serial.println("");
+  Serial.println(";");
   delay(1000);
 }
 
-
-void sendToSlave(int address) {
+/**
+ * Water plant. If autonomous flag is set to true then the system runs autonomously,
+ * only watering the plant if its needed.
+ */
+void wateringSlave(boolean autonomous) {
   Wire.beginTransmission(8);
-  Wire.write(0x28);     
+  if (autonomous) {
+    Wire.write(0x02);     
+  } else {
+    Wire.write(0x01); 
+  }
+      
   Wire.endTransmission();
   Serial.println("Sent");
 }

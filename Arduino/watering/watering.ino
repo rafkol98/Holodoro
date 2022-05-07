@@ -6,7 +6,7 @@ const int dry = 270;
 const int pumpPin = 7;
 const int soilSensor = A0;
 
-boolean checkWater = false;
+boolean autonomousFlag = false;
 boolean forceWateringFlag = false;
 
 void setup() {
@@ -21,21 +21,19 @@ void setup() {
 }
 
 void loop() {
-//  readFromMaster();
   // if force watering flag is true, then water plant once.
   if (forceWateringFlag) {
     forceWatering();
     forceWateringFlag = false;
   }
   
-  if (checkWater) {
+  if (autonomousFlag) {
     digitalWrite(LED_BUILTIN, HIGH);
-    checkWatering();
-//    delay(10000);
+    autonomousWatering();
   }
 }
 
-void checkWatering() {
+void autonomousWatering() {
   digitalWrite(pumpPin, LOW);
   // read current moisture
   int moisture = averageReadings();
@@ -73,46 +71,24 @@ int averageReadings() {
   return sum/20;
 }
 
-//void readFromMaster() {
-//  while(Wire.available()) {
-//    char c = Wire.read();
-//    // if message is not * (42 - ascii), print the message.
-//    if (c != 42) {
-//      Serial.print(c);
-//    } else {
-//      Serial.print(",");
-//    }
-//
-//    digitalWrite(LED_BUILTIN, HIGH);
-//  }
-//
-//  Serial.println("");
-//  delay(1000);
-//}
-
-void receiveEvent(int howMany)
-{
-    byte x = Wire.read(); //getting from receive FIFO Buffer
-    if(x == 0x28)
+void receiveEvent(int howMany) {
+    byte x = Wire.read();
+    if(x == 0x01)
     {
-       digitalWrite(LED_BUILTIN, HIGH);
+       forceWateringFlag = true;
+    } else if (x == 0x02) {
+      autonomousFlag = true;
     }
 }
 
+/**
+ * Request event used to get back the moisture from the sensor to the master.
+ */
 void requestEvent() {
- 
-  if (!checkWater) {
-    checkWater = true;
-  } 
-  // if called the second time, then it means that
-  // the user request
-  else {
-    forceWateringFlag = true;
-  }
-  
   char buffer[7];
   int r = analogRead(soilSensor);
-  Wire.write("msg:");
+  // write moisture.
+  Wire.write("moi;");
   Wire.write(itoa(r,buffer,10));
   Wire.write("*");
 }

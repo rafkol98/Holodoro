@@ -350,13 +350,13 @@ function str_pad_left(string, pad, length) {
 
 /**
  * if the player has credit - set the watering flag to true so that the system checks 
- * continually if the plants need watering. 
+ * continually if the plants need watering - autonomous mode. 
  */
 function handleCredit() {
   console.log("credit " + credit)
   if (credit > 0 && !waterFlag) {
     console.log("mesa!")
-    serial.write("water*");
+    serial.write("autonomous*");
     waterFlag = true;
   }
 }

@@ -1,6 +1,6 @@
 //Serial communication.
 let serial;
-let portnName = '/dev/tty.usbmodem144301'
+let portnName = '/dev/tty.usbmodem144401'
 let inData;
 
 var myRec = new p5.SpeechRec('en-US', parseResult); // new P5.SpeechRec object
@@ -10,9 +10,12 @@ myRec.interimResults = true; // allow partial recognition (faster, less accurate
 var minutesSession = "'X minutes study'";
 var minutesBreak = "'Y minutes break'";
 var numberSessions = "'Repeat Z times'";
+var wateredTimestamp;
 
-var joinedDate, lastWateredPlants, secondsFocused, initialHeight, heightToday;
+var credit, moisture, initialHeight, heightToday, heightMeasured;
 var openedClock = false;
+var watered = false;
+
 
 let size = 550;
 
@@ -24,8 +27,7 @@ function setup() {
     serial.on('data', serialEvent);
     serial.open(portnName);
 
-    // read height of plant.
-    serial.write("height*");
+    serial.write("moisture*");
 
     setupFirebase();
     // graphics stuff:
@@ -38,6 +40,11 @@ function setup() {
 }
 
 function draw() {
+    // measure height of tree.
+    if (!heightMeasured) {
+        serial.write("height*");
+    }
+
     calculateHeightToday();
 
     noStroke();
@@ -79,8 +86,12 @@ function parseResult() {
 
     // if said the word "water" send a command to water the plants.
     if (mostrecentword.indexOf("water") !== -1) {
-        minutesSession = myRec.resultString.match(/\d+/)[0];
-        localStorage.setItem("minutesSession", minutesSession); // set local variable.
+        console.log("water!")
+       
+        if (parseInt(credit) > 0) {
+            // force watering.
+            serial.write("force*");
+        }
     } 
 
     // if said the word "study" get the number of minutes for session.
@@ -147,10 +158,11 @@ function randomBetween(low, high) {
 }
 
 function calculateHeightToday() {
+
     if (initialHeight != undefined) {
         var growth = heightToday - initialHeight;
         $("#plantGrowthTxt").text(growth.toFixed(2));
-    }
+    } 
 }
 
 function readDB() {
@@ -159,7 +171,8 @@ function readDB() {
         ref = database.ref('users').child(userID)
         // get joined date of user.
         ref.child('credit').on('value', (snapshot) => {
-            $("#creditTxt").text(snapshot.val());
+            credit = snapshot.val();
+            $("#creditTxt").text(credit);
         });
 
         ref.child('sessions').on('value', (snapshot) => {
@@ -194,8 +207,17 @@ function serialEvent() {
 
         // if length is 3 -> then read the height.
         if (sensors.length == 3) {
-            heightToday = sensors[1];
-            console.log("height today " + heightToday);
+            if (sensors[0] == "height") {
+                heightToday = sensors[1];
+                console.log("height today " + heightToday);
+                heightMeasured = true;
+            } 
+            
+            if (sensors[0] == "moi"){
+                moisture =  sensors[1];
+                $("#moistureTxt").text(moisture);
+                console.log("moisture " + moisture);
+            }
         }
     }
 }
