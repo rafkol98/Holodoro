@@ -180,6 +180,10 @@ void checkSerial() {
     if (getStart == "water") {
       getFromSlave();
      }
+
+     if (getStart == "credit") {
+      sendToSlave(8);
+     }
      
     // When all sessions are finished turn off leds.
     if (getStart == "finished") {
@@ -196,7 +200,7 @@ void getFromSlave() {
   delay(2000);
 
   byte a,b;
-  Wire.requestFrom(8,6, false);
+  Wire.requestFrom(8,7, false);
 
   while(Wire.available()) {
     char c = Wire.read();
@@ -210,4 +214,12 @@ void getFromSlave() {
 
   Serial.println("");
   delay(1000);
+}
+
+
+void sendToSlave(int address) {
+  Wire.beginTransmission(8);
+  Wire.write(0x28);     
+  Wire.endTransmission();
+  Serial.println("Sent");
 }

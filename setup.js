@@ -77,23 +77,39 @@ function parseResult() {
     // get most recent word.
     var mostrecentword = myRec.resultString.split(' ').pop();
 
+    // if said the word "water" send a command to water the plants.
+    if (mostrecentword.indexOf("water") !== -1) {
+        minutesSession = myRec.resultString.match(/\d+/)[0];
+        localStorage.setItem("minutesSession", minutesSession); // set local variable.
+    } 
+
+    // if said the word "study" get the number of minutes for session.
     if (mostrecentword.indexOf("study") !== -1) {
         minutesSession = myRec.resultString.match(/\d+/)[0];
         localStorage.setItem("minutesSession", minutesSession); // set local variable.
-    } else if (mostrecentword.indexOf("break") !== -1) {
+    } 
+    // if said the word "break" get the number of minutes for the break.
+    else if (mostrecentword.indexOf("break") !== -1) {
         minutesBreak = myRec.resultString.match(/\d+/)[0];
         localStorage.setItem("minutesBreak", minutesBreak);
-    } else if (mostrecentword.indexOf("times") !== -1) {
+    } 
+    // if said the word "times" get the number of sessions.
+    else if (mostrecentword.indexOf("times") !== -1) {
         numberSessions = myRec.resultString.match(/\d+/)[0];
         localStorage.setItem("numberSessions", numberSessions);
-    } else if (mostrecentword.indexOf("start") !== -1 || mostrecentword.indexOf("ready") !== -1) {
+    } 
+    // if said the word "start" or "ready" - then start the session.
+    else if (mostrecentword.indexOf("start") !== -1 || mostrecentword.indexOf("ready") !== -1) {
         console.log("starting!!!")
         if (!openedClock) {
+            // if all of the parameters were set, start the session.
             if ((minutesSession != "'X minutes study'") && (minutesBreak != "'Y minutes break'") && (numberSessions != "'Repeat Z times'")) {
                 openedClock = true;
                 localStorage.setItem("startClock", true);
                 window.open("./clock.html");
-            } else {
+            } 
+            // if any of the parameters was not set then show notification to the user.
+            else {
                 $('#alertOne').show();
             }
         }
