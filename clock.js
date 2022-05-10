@@ -113,12 +113,18 @@ function draw() {
   }
 }
 
+/**
+ * Signal that the ML model is ready.
+ */
 function modelReady() {
   detector.detect(video, gotDetections);
   console.log("model ready");
   loaded = true;
 }
 
+/**
+ * Got detections for ML model.
+ */
 function gotDetections(error, results) {
   if (error) {
     console.error(error);
@@ -127,6 +133,9 @@ function gotDetections(error, results) {
   detector.detect(video, gotDetections);
 }
 
+/**
+ * Draw the holographic timer.
+ */
 function drawTimer() {
   // colours change depending if working or break.
   if (startBreak) {
@@ -147,7 +156,6 @@ function drawTimer() {
 
   textSize(50);
   translate(0, 130)
-  scale(-1, 1);
   text(sessionString, 0, 0)
   pop()
 
@@ -193,7 +201,7 @@ function drawTimer() {
  */
 function timer() {
 
-  //TODO: number sessions repeat.
+  // Number sessions repeat.
   initialSeconds = localStorage.getItem("minutesSession") * 60;
   initialSecondsBreak = localStorage.getItem("minutesBreak") * 60;
 
@@ -289,6 +297,9 @@ function updateDB() {
   }
 }
 
+/**
+ * Read database information.
+ */
 function readDB() {
   if (userLoggedIn) {
     ref = database.ref('users').child(userID)
@@ -355,18 +366,14 @@ function str_pad_left(string, pad, length) {
 function handleCredit() {
   console.log("credit " + credit)
   if (credit > 0 && !waterFlag) {
-    console.log("mesa!")
     serial.write("autonomous*");
     waterFlag = true;
   }
 }
 
-function sameDay(d1, d2) {
-  return d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate();
-}
-
+/**
+ * Check if you can update the credit - if the student studied more than an hour.
+ */
 function checkIfUpdateCredit() {
   // If an hour passed of focused work, then give one watering credit.
   if (totalSecondsForCredit / 60 >= 60) {

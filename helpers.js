@@ -1,7 +1,13 @@
+/**
+ * Convert seconds to hours.
+ */
 function converrtSecondsToHours(secondsFocused) {
 	return Math.floor(secondsFocused / 3600);
 }
 
+/**
+ * Setup firebase.
+ */
 function setupFirebase() {
     // Configuration of firebase.
     const firebaseConfig = {

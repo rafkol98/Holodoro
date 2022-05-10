@@ -53,7 +53,7 @@ void autonomousWatering() {
 
 void forceWatering() {
    digitalWrite(pumpPin, HIGH);
-   delay(10000);
+   delay(5000);
    digitalWrite(pumpPin, LOW);
 }
 

@@ -45,7 +45,7 @@ function draw() {
         serial.write("height*");
     }
 
-    calculateHeightToday();
+    calculateGrowthToday();
 
     noStroke();
     background(255, 255, 255);
@@ -83,14 +83,16 @@ function draw() {
 function parseResult() {
     // get most recent word.
     var mostrecentword = myRec.resultString.split(' ').pop();
-
+    
     // if said the word "water" send a command to water the plants.
-    if (mostrecentword.indexOf("water") !== -1) {
+    if (mostrecentword.indexOf("water") !== -1 && !watered) {
         console.log("water!")
+        watered = true;
        
         if (parseInt(credit) > 0) {
             // force watering.
             serial.write("force*");
+            reduceCredit();
         }
     } 
 
@@ -128,7 +130,10 @@ function parseResult() {
     }
 }
 
-
+/**
+ * Create the branch of the tree. 
+ * Basis taken from: https://justinpoliachik.com/posts/2021-09-13-generativetrees01/
+ */
 function branch(startPoint, weight, length, angle) {
     let x1 = startPoint[0] + length * cos(angle);
     let y1 = startPoint[1] - length * sin(angle);
@@ -153,18 +158,19 @@ function branch(startPoint, weight, length, angle) {
     branch(endpoint, newWeight, newLength, angle2);
 }
 
-function randomBetween(low, high) {
-    return random(high - low) + low;
-}
-
-function calculateHeightToday() {
+/**
+ * Calculate the growth of the plant today.
+ */
+function calculateGrowthToday() {
 
     if (initialHeight != undefined) {
         var growth = heightToday - initialHeight;
         $("#plantGrowthTxt").text(growth.toFixed(2));
     } 
 }
-
+/**
+ * Read firebase database.
+ */
 function readDB() {
     if (userLoggedIn) {
 
@@ -220,4 +226,13 @@ function serialEvent() {
             }
         }
     }
+}
+/**
+ * Reduce the credit whenever the user uses the water command.
+ */
+function reduceCredit() {
+    ref = database.ref('users').child(userID)
+
+    credit = credit - 1;
+    ref.child('credit').set(credit);
 }
