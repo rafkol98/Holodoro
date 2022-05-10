@@ -10,6 +10,7 @@ boolean autonomousFlag = false;
 boolean forceWateringFlag = false;
 
 void setup() {
+  // Declare inputs and outputs.
   pinMode(pumpPin, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(soilSensor, INPUT);
@@ -21,18 +22,22 @@ void setup() {
 }
 
 void loop() {
-  // if force watering flag is true, then water plant once.
+  // if force watering flag is true, then water plant once. 
+  // This is achieved by setting the forceWateringFlag false once watered.
   if (forceWateringFlag) {
     forceWatering();
     forceWateringFlag = false;
   }
-  
+  // if autonomous flag is true, then keep checking.
   if (autonomousFlag) {
     digitalWrite(LED_BUILTIN, HIGH);
     autonomousWatering();
   }
 }
 
+/**
+* Keep checking if the plant needs watering using the moisture sensor.
+*/
 void autonomousWatering() {
   digitalWrite(pumpPin, LOW);
   // read current moisture
@@ -44,8 +49,7 @@ void autonomousWatering() {
     digitalWrite(pumpPin, HIGH);
     delay(10000);
     digitalWrite(pumpPin, LOW);
-    Serial.println("Watered plants: " + String(moisture));
-    
+    Serial.println("Watered plants: " + String(moisture));  
   } else {
     Serial.println("Moisture of plant is OK. No watering needed " + String(moisture));
   }
@@ -71,6 +75,10 @@ int averageReadings() {
   return sum/20;
 }
 
+/**
+* Determine the mode to which the watering system will run. The first flag is
+* used for the forceful watering and the second for the autonomous.
+*/
 void receiveEvent(int howMany) {
     byte x = Wire.read();
     if(x == 0x01)

@@ -120,6 +120,9 @@ void calculateDistance() {
   Serial.println(";");  
 }
 
+/*
+* Play piezo sound - sound depends on whether studying or break finished.
+*/
 void playPiezoSound(boolean isBreakOver) {
   if (isBreakOver) {
     tone(piezoPin, 800, 1000);

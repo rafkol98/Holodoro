@@ -79,13 +79,13 @@ function draw() {
     background(0)
     var startClock = localStorage.getItem("startClock");
    
+    // if the model is loaded and the startClock flag is true, then start studying session.
     if (loaded && startClock) {
       console.log("detections length: " + detections.length)
-      // if more than 0 items were detected, then execute appropriately.
-
       if (startBreak) {
         drawTimer();
       }
+      // if not a break and more than 0 items were detected (person), then execute appropriately.
       else if (detections.length > 0) {
         for (let i = 0; i < detections.length; i++) {
           let object = detections[i];
@@ -107,7 +107,9 @@ function draw() {
         person = false;
       }
     }
-  } else {
+  } 
+  // When all the studying repetitions finished, return to setup page.
+  else {
     serial.write("finished*");
     window.location.replace("setup.html");
   }
@@ -256,13 +258,13 @@ function serialEvent() {
     var sensors = split(inString, ';');
     pauseButtonValue = sensors[0];
     console.log("pause val: "+pauseButtonValue);
-    // Check the ultrasound sensor and act appropriately.
+    // Check if the user pressed the button, if so pause the studying session.
     controlPause();
   }
 }
 
 /**
- *  Control the ultrasound sensor.
+ *  Control the pause feature - if the user pressed the button.
  */
 function controlPause() {
   if (pauseButtonValue == 1) {
@@ -282,12 +284,13 @@ function updateDB() {
     secondsFocused += initialSeconds;
     // add the seconds of the current session to the daily tally.
     totalSecondsForCredit += initialSeconds;
+    // check if the user earned a credit.
     checkIfUpdateCredit();
     console.log(totalSecondsForCredit);
     sessions++
 
     console.log("seconds focused: " + secondsFocused + "sessions: " + sessions);
-
+    // update data in the database.
     var data = {
       secondsFocused: secondsFocused,
       sessions: sessions,

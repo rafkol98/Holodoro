@@ -17,7 +17,7 @@ var openedClock = false;
 var watered = false;
 
 
-let size = 550;
+let size = 500;
 
 function setup() {
     $('#alertOne').hide();
@@ -30,11 +30,9 @@ function setup() {
     serial.write("moisture*");
 
     setupFirebase();
-    // graphics stuff:
     canvas = createCanvas(windowWidth, 600);
-
-    //myRec.onResult = parseResult; // now in the constructor
-    myRec.start(); // start engine
+    
+    myRec.start(); // start listening.
 
     canvas.parent('setup')
 }
@@ -63,7 +61,10 @@ function draw() {
     text("Sessions: " + numberSessions, windowWidth / 2 + 400, 80);
     text("Once Ready say 'Start'", windowWidth / 2, 120);
 
+    drawComparisonTrees();
+}
 
+function drawComparisonTrees() {
     let startPoint = [(windowWidth / 2) + 200, size];
     let length = (600 / 15) * 2;
     let weight = 10;
@@ -76,8 +77,9 @@ function draw() {
     let length2 = (600 / 30) * 2;
     let startPoint2 = [(windowWidth / 2) - 200, size];
     branch(startPoint2, weight, length2, branchAngle);
-    text("Height Today: " + heightToday + " cm", (windowWidth / 2) + 200, 580);
-    text("Initial Height: "+ initialHeight + " cm", (windowWidth / 2) - 200, 580);
+    text("Height Today: " + heightToday + " cm", (windowWidth / 2) + 200, 530);
+    text("Initial Height: "+ initialHeight + " cm", (windowWidth / 2) - 200, 530);
+    text("Say 'water' to force watering of the plant (must have at least one credit).", (windowWidth / 2), 590)
 }
 
 function parseResult() {
