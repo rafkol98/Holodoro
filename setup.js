@@ -64,22 +64,29 @@ function draw() {
     drawComparisonTrees();
 }
 
+/**
+ * Draw the two comparison trees, initial height with height today.
+ */
 function drawComparisonTrees() {
-    let startPoint = [(windowWidth / 2) + 200, size];
-    let length = (600 / 15) * 2;
-    let weight = 10;
-    strokeWeight(weight);
-    stroke(30);
-    let branchAngle = PI / 2;
-    branch(startPoint, weight, length, branchAngle);
-
-
-    let length2 = (600 / 30) * 2;
-    let startPoint2 = [(windowWidth / 2) - 200, size];
-    branch(startPoint2, weight, length2, branchAngle);
-    text("Height Today: " + heightToday + " cm", (windowWidth / 2) + 200, 530);
-    text("Initial Height: "+ initialHeight + " cm", (windowWidth / 2) - 200, 530);
-    text("Say 'water' to force watering of the plant (must have at least one credit).", (windowWidth / 2), 590)
+    // Only execute if successfully got height of the tree from the sensor.
+    if (heightToday != undefined) {
+        let startPoint = [(windowWidth / 2) + 200, size];
+        let length = heightToday * 2.5;
+        let weight = 10;
+        strokeWeight(weight);
+        stroke(30);
+        let branchAngle = PI / 2;
+        branch(startPoint, weight, length, branchAngle);
+    
+        
+        let length2 = initialHeight * 2.5;
+        let startPoint2 = [(windowWidth / 2) - 200, size];
+        branch(startPoint2, weight, length2, branchAngle);
+        noStroke();
+        text("Height Today: " + heightToday + " cm", (windowWidth / 2) + 200, 530);
+        text("Initial Height: "+ initialHeight + " cm", (windowWidth / 2) - 200, 530);
+        text("Say 'water' to force watering of the plant (must have at least one credit).", (windowWidth / 2), 590)
+    }
 }
 
 function parseResult() {
@@ -228,13 +235,4 @@ function serialEvent() {
             }
         }
     }
-}
-/**
- * Reduce the credit whenever the user uses the water command.
- */
-function reduceCredit() {
-    ref = database.ref('users').child(userID)
-
-    credit = credit - 1;
-    ref.child('credit').set(credit);
 }

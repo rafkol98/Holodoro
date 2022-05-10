@@ -1,3 +1,5 @@
+// AUTHOR: 210017984
+// The sketch used for the watering of the plants.
 #include <Wire.h>
 
 // if the soil is dryer than this, then start watering.

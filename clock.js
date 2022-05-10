@@ -85,13 +85,14 @@ function draw() {
       if (startBreak) {
         drawTimer();
       }
-      // if not a break and more than 0 items were detected (person), then execute appropriately.
+      // more than 0 items were detected (person), then execute appropriately.
       else if (detections.length > 0) {
         for (let i = 0; i < detections.length; i++) {
           let object = detections[i];
-          // if a person is detected -> show counter.
+
+          // if a person was detected then execute.
           if (object.label == 'person') {
-            person = true; // pause counter.
+            person = true; 
 
             // if pause is false and person is true -> show timer.
             if (!pause) {
@@ -371,6 +372,7 @@ function handleCredit() {
   if (credit > 0 && !waterFlag) {
     serial.write("autonomous*");
     waterFlag = true;
+    reduceCredit();
   }
 }
 

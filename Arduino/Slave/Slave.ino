@@ -1,5 +1,5 @@
-// The slave or the receiver
-
+// AUTHOR: 210017984
+// The slave used to light up the LED lamps.
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>

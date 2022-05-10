@@ -36,3 +36,14 @@ function setupFirebase() {
       }
     });
   }
+
+
+/**
+ * Reduce the credit whenever the user uses the water command.
+ */
+function reduceCredit() {
+  ref = database.ref('users').child(userID)
+
+  credit = credit - 1;
+  ref.child('credit').set(credit);
+}

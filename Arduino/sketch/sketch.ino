@@ -1,3 +1,4 @@
+// The main sketch used to control the holographic clock.
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>
@@ -55,6 +56,9 @@ void loop() {
   delay(200);
 }
 
+/**
+* Send radio data to the wireless slave.
+*/
 void sendRadioData(int status) {
    bool rslt;
 
@@ -78,6 +82,9 @@ acknowledge(rslt);
       
 }
 
+/**
+* Acknowledge that the data has been sent.
+*/
 void acknowledge(boolean rslt) {
   Serial.print("Data Sent ");
     if (rslt) {
@@ -206,6 +213,9 @@ void checkSerial() {
   }
 }
 
+/**
+* Get message from wired slave - watering.
+*/
 void getFromSlave() {
   delay(2000);
 
